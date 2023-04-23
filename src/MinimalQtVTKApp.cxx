@@ -89,7 +89,6 @@ vtkSmartPointer<vtkLineSource> Hexahedron_Source = vtkSmartPointer<vtkLineSource
 vtkSmartPointer<vtkActor> actor_Star = vtkSmartPointer<vtkActor>::New();
 vtkDataSetMapper* mapper_Star = vtkDataSetMapper::New();
 vtkSmartPointer<vtkLineSource> Star_Source = vtkSmartPointer<vtkLineSource>::New();
-
 /// Global Initialization
 double Radius_Circle;
 double Radius_Sphere;
@@ -112,6 +111,7 @@ double y1_line;
 double x2_line;
 double y2_line;
 bool is_Polygon = false;
+
 namespace {
     void DrawLine(vtkRenderer* renderer, vtkPoints* points);
 
@@ -119,9 +119,9 @@ namespace {
 
     void Change_Shapes(QComboBox* comboBox, vtkGenericOpenGLRenderWindow* window);
 
-    void ChangeColor(QComboBox* comboBox, vtkGenericOpenGLRenderWindow* window);
+    void ChangeColor_Button(QComboBox* comboBox_Color, vtkGenericOpenGLRenderWindow* window, QComboBox* comboBox_Shgapes);
 
-    void UpdateLineThickness(int thickness, vtkGenericOpenGLRenderWindow* window);
+    void UpdateLineThickness(int thickness, vtkGenericOpenGLRenderWindow* window, QComboBox* comboBox);
 
     void Save(QComboBox* comboBox);
 
@@ -132,32 +132,6 @@ namespace {
     void Load();
 } // namespace
 
-namespace {
-    class Node {
-    private:
-        int item;
-        Node* next;
-    public:
-        void setitem(int x) {
-            item = x;
-        }
-        void setnext(Node* n) {
-            next = n;
-        }
-        int getitem() {
-            return item;
-        }
-        Node* getnext() {
-            return next;
-        }
-    };
-    class LinkedList {
-    private:
-        Node* Head;
-    public:
-
-    };
-}
 namespace {
     class MouseInteractorStylePP : public vtkInteractorStyleTrackballCamera
     {
@@ -404,12 +378,12 @@ int main(int argc, char* argv[])
 
     // Connect Change Color 
     QObject::connect(changeColorButton, &QPushButton::clicked,
-        [=, &colorDroplist, &window]() { ChangeColor(colorDroplist, window); });
+        [=, &colorDroplist, &window]() { ChangeColor_Button(colorDroplist, window, shapesdroplist); });
 
     // Connect Change Thickness
     QObject::connect(thicknessSlider, &QSlider::valueChanged, [&]() {
         int thickness = thicknessSlider->value();
-        UpdateLineThickness(thickness, window);
+        UpdateLineThickness(thickness, window, shapesdroplist);
         });
 
     // Connect save button
@@ -428,6 +402,8 @@ int main(int argc, char* argv[])
     // Connect Change Color 
     QObject::connect(trasform_button, &QPushButton::clicked,
         [=, &transform_list, &window]() { Transform(transform_list, window); });
+
+    //shapestore.print();
 
     mainWindow.show();
 
@@ -1632,104 +1608,73 @@ namespace {
         }
     }
 
-    void ChangeColor(QComboBox* comboBox, vtkGenericOpenGLRenderWindow* window) {
-        QString color_name = comboBox->currentText();
+    void ChangeColor(string color_name, vtkSmartPointer<vtkActor> temp_actor) {
         if (color_name == "Red")
         {
-            actor->GetProperty()->SetColor(1.0, 0.0, 0.0);
-            actor_circle->GetProperty()->SetColor(1.0, 0.0, 0.0);
-            actor_Ellipse->GetProperty()->SetColor(1.0, 0.0, 0.0);
-            actor_Regular_Polygon->GetProperty()->SetColor(1.0, 0.0, 0.0);
-            actor_Arc->GetProperty()->SetColor(1.0, 0.0, 0.0);
-            actor_Cylinder->GetProperty()->SetColor(1.0, 0.0, 0.0);
-            actor_Football->GetProperty()->SetColor(1.0, 0.0, 0.0);
-            actor_Square->GetProperty()->SetColor(1.0, 0.0, 0.0);
-            actor_Hexahedron->GetProperty()->SetColor(1.0, 0.0, 0.0);
-            actor_Star->GetProperty()->SetColor(1.0, 0.0, 0.0);
+            temp_actor->GetProperty()->SetColor(1.0, 0.0, 0.0);
         }
         else if (color_name == "Green")
         {
-            actor->GetProperty()->SetColor(0.0, 1.0, 0.0);
-            actor_circle->GetProperty()->SetColor(0.0, 1.0, 0.0);
-            actor_Ellipse->GetProperty()->SetColor(0.0, 1.0, 0.0);
-            actor_Regular_Polygon->GetProperty()->SetColor(0.0, 1.0, 0.0);
-            actor_Arc->GetProperty()->SetColor(0.0, 1.0, 0.0);
-            actor_Cylinder->GetProperty()->SetColor(0.0, 1.0, 0.0);
-            actor_Football->GetProperty()->SetColor(0.0, 1.0, 0.0);
-            actor_Square->GetProperty()->SetColor(0.0, 1.0, 0.0);
-            actor_Hexahedron->GetProperty()->SetColor(0.0, 1.0, 0.0);
-            actor_Star->GetProperty()->SetColor(0.0, 1.0, 0.0);
-
+            temp_actor->GetProperty()->SetColor(0.0, 1.0, 0.0);
         }
         else if (color_name == "Blue")
         {
-            actor->GetProperty()->SetColor(0.0, 0.0, 1.0);
-            actor_circle->GetProperty()->SetColor(0.0, 0.0, 1.0);
-            actor_Ellipse->GetProperty()->SetColor(0.0, 0.0, 1.0);
-            actor_Regular_Polygon->GetProperty()->SetColor(0.0, 0.0, 1.0);
-            actor_Arc->GetProperty()->SetColor(0.0, 0.0, 1.0);
-            actor_Cylinder->GetProperty()->SetColor(0.0, 0.0, 1.0);
-            actor_Football->GetProperty()->SetColor(0.0, 0.0, 1.0);
-            actor_Square->GetProperty()->SetColor(0.0, 0.0, 1.0);
-            actor_Hexahedron->GetProperty()->SetColor(0.0, 0.0, 1.0);
-            actor_Star->GetProperty()->SetColor(0.0, 0.0, 1.0);
-
+            temp_actor->GetProperty()->SetColor(0.0, 0.0, 1.0);
         }
         else if (color_name == "Yellow")
         {
-            actor->GetProperty()->SetColor(1.0, 1.0, 0.0);
-            actor_circle->GetProperty()->SetColor(1.0, 1.0, 0.0);
-            actor_Ellipse->GetProperty()->SetColor(1.0, 1.0, 0.0);
-            actor_Regular_Polygon->GetProperty()->SetColor(1.0, 1.0, 0.0);
-            actor_Arc->GetProperty()->SetColor(1.0, 1.0, 0.0);
-            actor_Cylinder->GetProperty()->SetColor(1.0, 1.0, 0.0);
-            actor_Football->GetProperty()->SetColor(1.0, 1.0, 0.0);
-            actor_Square->GetProperty()->SetColor(1.0, 1.0, 0.0);
-            actor_Hexahedron->GetProperty()->SetColor(1.0, 1.0, 0.0);
-            actor_Star->GetProperty()->SetColor(1.0, 1.0, 0.0);
-
+            temp_actor->GetProperty()->SetColor(1.0, 1.0, 0.0);
         }
         else if (color_name == "Magenta")
         {
-            actor->GetProperty()->SetColor(1.0, 0.0, 1.0);
-            actor_circle->GetProperty()->SetColor(1.0, 0.0, 1.0);
-            actor_Ellipse->GetProperty()->SetColor(1.0, 0.0, 1.0);
-            actor_Regular_Polygon->GetProperty()->SetColor(1.0, 0.0, 1.0);
-            actor_Arc->GetProperty()->SetColor(1.0, 0.0, 1.0);
-            actor_Cylinder->GetProperty()->SetColor(1.0, 0.0, 1.0);
-            actor_Football->GetProperty()->SetColor(1.0, 0.0, 1.0);
-            actor_Square->GetProperty()->SetColor(1.0, 0.0, 1.0);
-            actor_Hexahedron->GetProperty()->SetColor(1.0, 0.0, 1.0);
-            actor_Star->GetProperty()->SetColor(1.0, 0.0, 1.0);
-
+            temp_actor->GetProperty()->SetColor(1.0, 0.0, 1.0);
         }
         else if (color_name == "Black")
         {
-            actor->GetProperty()->SetColor(0.0, 0.0, 0.0);
-            actor_circle->GetProperty()->SetColor(0.0, 0.0, 0.0);
-            actor_Ellipse->GetProperty()->SetColor(0.0, 0.0, 0.0);
-            actor_Regular_Polygon->GetProperty()->SetColor(0.0, 0.0, 0.0);
-            actor_Arc->GetProperty()->SetColor(0.0, 0.0, 0.0);
-            actor_Cylinder->GetProperty()->SetColor(0.0, 0.0, 0.0);
-            actor_Football->GetProperty()->SetColor(0.0, 0.0, 0.0);
-            actor_Square->GetProperty()->SetColor(0.0, 0.0, 0.0);
-            actor_Hexahedron->GetProperty()->SetColor(0.0, 0.0, 0.0);
-            actor_Star->GetProperty()->SetColor(0.0, 0.0, 0.0);
-
+            temp_actor->GetProperty()->SetColor(0.0, 0.0, 0.0);
         }
         else if (color_name == "White")
         {
-            actor->GetProperty()->SetColor(1.0, 1.0, 1.0);
-            actor_circle->GetProperty()->SetColor(1.0, 1.0, 1.0);
-            actor_Ellipse->GetProperty()->SetColor(1.0, 1.0, 1.0);
-            actor_Regular_Polygon->GetProperty()->SetColor(1.0, 1.0, 1.0);
-            actor_Arc->GetProperty()->SetColor(1.0, 1.0, 1.0);
-            actor_Cylinder->GetProperty()->SetColor(1.0, 1.0, 1.0);
-            actor_Football->GetProperty()->SetColor(1.0, 1.0, 1.0);
-            actor_Square->GetProperty()->SetColor(1.0, 1.0, 1.0);
-            actor_Hexahedron->GetProperty()->SetColor(1.0, 1.0, 1.0);
-            actor_Star->GetProperty()->SetColor(1.0, 1.0, 1.0);
+            temp_actor->GetProperty()->SetColor(1.0, 1.0, 1.0);
+        }
+    }
 
+    void ChangeColor_Button(QComboBox* comboBox_Color, vtkGenericOpenGLRenderWindow* window, QComboBox* comboBox_Shapes) {
+        QString color_name = comboBox_Color->currentText();
+        QString shape_name = comboBox_Shapes->currentText();
+        std::string color_name_std = color_name.toStdString(); // Convert QString to std::string
+        if (shape_name == "Circle") {
+            ChangeColor(color_name_std, actor_circle); 
+        }
+        else if (shape_name == "Line") {
+            ChangeColor(color_name_std, actor);
+        }
+        else if (shape_name == "Ellipse") {
+            ChangeColor(color_name_std, actor_Ellipse);
+        }
+        else if (shape_name == "Arc") {
+            ChangeColor(color_name_std, actor_Arc);
+        }
+        else if (shape_name == "Sphere") {
+            ChangeColor(color_name_std, actor_Football);
+        }
+        else if (shape_name == "Hexahedron") {
+            ChangeColor(color_name_std, actor_Hexahedron);
+        }
+        else if (shape_name == "Regular Polygon") {
+            ChangeColor(color_name_std, actor_Regular_Polygon);
+        }
+        else if (shape_name == "Cylinder") {
+            ChangeColor(color_name_std, actor_Cylinder);
+        }
+        else if (shape_name == "Square") {
+            ChangeColor(color_name_std, actor_Square);
+        }
+        else if (shape_name == "Star") {
+            ChangeColor(color_name_std, actor_Star);
+        }
+        else {
+            return;
         }
         window->Render();
     }
@@ -1909,27 +1854,51 @@ namespace {
     }
 
 
-    void UpdateLineThickness(int thickness, vtkGenericOpenGLRenderWindow* window) {
-        actor->GetProperty()->SetLineWidth(thickness);
-        actor->GetMapper()->Update();
-        actor_Regular_Polygon->GetProperty()->SetLineWidth(thickness);
-        actor_Regular_Polygon->GetMapper()->Update();
-        actor_circle->GetProperty()->SetLineWidth(thickness);
-        actor_circle->GetMapper()->Update();
-        actor_Ellipse->GetProperty()->SetLineWidth(thickness);
-        actor_Ellipse->GetMapper()->Update();
-        actor_Arc->GetProperty()->SetLineWidth(thickness);
-        actor_Arc->GetMapper()->Update();
-        actor_Cylinder->GetProperty()->SetLineWidth(thickness);
-        actor_Cylinder->GetMapper()->Update();
-        actor_Football->GetProperty()->SetLineWidth(thickness);
-        actor_Football->GetMapper()->Update();
-        actor_Square->GetProperty()->SetLineWidth(thickness);
-        actor_Square->GetMapper()->Update();
-        actor_Hexahedron->GetProperty()->SetLineWidth(thickness);
-        actor_Hexahedron->GetMapper()->Update();
-        actor_Star->GetProperty()->SetLineWidth(thickness);
-        actor_Star->GetMapper()->Update();
+    void UpdateLineThickness(int thickness, vtkGenericOpenGLRenderWindow* window, QComboBox* comboBox) {
+        QString shape_name = comboBox->currentText();
+        if (shape_name == "Circle") {
+            actor_circle->GetProperty()->SetLineWidth(thickness);
+            actor_circle->GetMapper()->Update();
+        }
+        else if (shape_name == "Line") {
+            actor->GetProperty()->SetLineWidth(thickness);
+            actor->GetMapper()->Update();
+        }
+        else if (shape_name == "Ellipse") {
+            actor_Ellipse->GetProperty()->SetLineWidth(thickness);
+            actor_Ellipse->GetMapper()->Update();
+        }
+        else if (shape_name == "Arc") {
+            actor_Arc->GetProperty()->SetLineWidth(thickness);
+            actor_Arc->GetMapper()->Update();
+        }
+        else if (shape_name == "Sphere") {
+            actor_Football->GetProperty()->SetLineWidth(thickness);
+            actor_Football->GetMapper()->Update();
+        }
+        else if (shape_name == "Hexahedron") {
+            actor_Hexahedron->GetProperty()->SetLineWidth(thickness);
+            actor_Hexahedron->GetMapper()->Update();
+        }
+        else if (shape_name == "Regular Polygon") {
+            actor_Regular_Polygon->GetProperty()->SetLineWidth(thickness);
+            actor_Regular_Polygon->GetMapper()->Update();
+        }
+        else if (shape_name == "Cylinder") {
+            actor_Cylinder->GetProperty()->SetLineWidth(thickness);
+            actor_Cylinder->GetMapper()->Update();
+        }
+        else if (shape_name == "Square") {
+            actor_Square->GetProperty()->SetLineWidth(thickness);
+            actor_Square->GetMapper()->Update();
+        }
+        else if (shape_name == "Star") {
+            actor_Star->GetProperty()->SetLineWidth(thickness);
+            actor_Star->GetMapper()->Update();
+        }
+        else {
+            return;
+        }
         window->Render();
     }
 
@@ -1937,8 +1906,6 @@ namespace {
         vtkGenericOpenGLRenderWindow* window)
     {
         QString shape_name = comboBox->currentText();
-
-
         if (shape_name == "Circle")
         {
             bool ok;
@@ -2014,7 +1981,7 @@ namespace {
 
         }
         else if (shape_name == "Polygon") {
-            is_Polygon == true;
+            is_Polygon = true;
             Draw_Polygon();
         }
         else if (shape_name == "Regular Polygon")
