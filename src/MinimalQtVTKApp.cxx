@@ -106,6 +106,7 @@ bool Line_Poly;
 bool Poly_Line = 0;
 double picked[3]; // Declares an array of 3 doubles called "picked"
 string mode_line;
+string delete_mode;
 double x1_line;
 double y1_line;
 double x2_line;
@@ -988,6 +989,7 @@ namespace {
     renderer->AddActor(actor);
 
 }
+
     void Save(QComboBox* comboBox) {
         QString shape_name = comboBox->currentText();
         if (shape_name == "Circle") {
@@ -1853,7 +1855,6 @@ namespace {
         }
     }
 
-
     void UpdateLineThickness(int thickness, vtkGenericOpenGLRenderWindow* window, QComboBox* comboBox) {
         QString shape_name = comboBox->currentText();
         if (shape_name == "Circle") {
@@ -1902,8 +1903,7 @@ namespace {
         window->Render();
     }
 
-    void Change_Shapes(QComboBox* comboBox,
-        vtkGenericOpenGLRenderWindow* window)
+    void Change_Shapes(QComboBox* comboBox, vtkGenericOpenGLRenderWindow* window)
     {
         QString shape_name = comboBox->currentText();
         if (shape_name == "Circle")
@@ -2040,14 +2040,75 @@ namespace {
 
         window->Render();
     }
-    void Delete(QComboBox* comboBox, vtkGenericOpenGLRenderWindow* window) {
+
+    void delete_last_shape(vtkSmartPointer<vtkLineSource> temp_Source, vtkSmartPointer<vtkActor> temp_actor) {
         // Set the color of the shape to match the background color
-        actor->GetProperty()->SetColor(renderer->GetBackground());
+        temp_actor->GetProperty()->SetColor(renderer->GetBackground());
         // Remove points from the line source
         vtkSmartPointer<vtkPoints> emptyPoints = vtkSmartPointer<vtkPoints>::New();
-        lineSource->SetPoints(emptyPoints);
+        temp_Source->SetPoints(emptyPoints);
+    }
+
+    void delete_all_shapes() {
+        vtkActorCollection* actors = renderer->GetActors(); // Get the collection of actors in the renderer
+        actors->InitTraversal(); // Initialize the actors traversal
+
+        vtkActor* actor = nullptr;
+        while ((actor = actors->GetNextActor()) != nullptr) {
+            renderer->RemoveActor(actor); // Remove the actor from the renderer
+        }
+    }
+
+    void Delete(QComboBox* comboBox, vtkGenericOpenGLRenderWindow* window) {
+        QString shape_name = comboBox->currentText();
+        QMessageBox messageBox;
+        messageBox.setText("Choose which one you want to delete");
+        QAbstractButton* filledButton = messageBox.addButton(QMessageBox::tr("Last shape drawn"), QMessageBox::YesRole);
+        QAbstractButton* nonFilledButton = messageBox.addButton(QMessageBox::tr("All the Shapes"), QMessageBox::YesRole);
+        messageBox.exec();
+        QString buttonText = messageBox.clickedButton()->text();
+        delete_mode = buttonText.toStdString();
+        if (delete_mode == "Last shape drawn") {
+            if (shape_name == "Circle") {
+                delete_last_shape(circle_Source, actor_circle);
+            }
+            else if (shape_name == "Line") {
+                delete_last_shape(lineSource, actor);
+            }
+            else if (shape_name == "Ellipse") {
+                delete_last_shape(Ellipse_Source, actor_Ellipse);
+            }
+            else if (shape_name == "Arc") {
+                delete_last_shape(Arc_Source, actor_Arc);
+            }
+            else if (shape_name == "Sphere") {
+                delete_last_shape(Football_Source, actor_Football);
+            }
+            else if (shape_name == "Hexahedron") {
+                delete_last_shape(Hexahedron_Source, actor_Hexahedron);
+            }
+            else if (shape_name == "Regular Polygon") {
+                delete_last_shape(Regular_Polygon_Source, actor_Regular_Polygon);
+            }
+            else if (shape_name == "Cylinder") {
+                delete_last_shape(Cylinder_Source, actor_Cylinder);
+            }
+            else if (shape_name == "Square") {
+                delete_last_shape(Square_Source, actor_Square);
+            }
+            else if (shape_name == "Star") {
+                delete_last_shape(Star_Source, actor_Star);
+            }
+            else {
+                return;
+            }
+        }
+        else {
+            delete_all_shapes();
+        }
         window->Render(); // Render the window to reflect the changes
     }
+
     void Transform(QComboBox* comboBox, vtkGenericOpenGLRenderWindow* window) {
         QString tranform_state = comboBox->currentText();
         if (tranform_state == "Translation") {
