@@ -102,16 +102,19 @@ double MINOR_AXIS;
 double Radius_Hexahedron;
 double Radius_Square;
 double Radius_Star;
+double Radius_Rosette;
 bool Line_Poly;
 bool Poly_Line = 0;
 double picked[3]; // Declares an array of 3 doubles called "picked"
 string mode_line;
 string delete_mode;
+string color_mode;
 double x1_line;
 double y1_line;
 double x2_line;
 double y2_line;
 bool is_Polygon = false;
+int num_vertices_ros;
 
 namespace {
     void DrawLine(vtkRenderer* renderer, vtkPoints* points);
@@ -120,7 +123,7 @@ namespace {
 
     void Change_Shapes(QComboBox* comboBox, vtkGenericOpenGLRenderWindow* window);
 
-    void ChangeColor_Button(QComboBox* comboBox_Color, vtkGenericOpenGLRenderWindow* window, QComboBox* comboBox_Shgapes);
+    void ChangeColor_Button(QComboBox* comboBox_Color, vtkGenericOpenGLRenderWindow* window, QComboBox* comboBox_Shapes);
 
     void UpdateLineThickness(int thickness, vtkGenericOpenGLRenderWindow* window, QComboBox* comboBox);
 
@@ -128,7 +131,7 @@ namespace {
 
     void Delete(QComboBox* comboBox, vtkGenericOpenGLRenderWindow* window);
 
-    void Transform(QComboBox* comboBox, vtkGenericOpenGLRenderWindow* window);
+    void Transform(QComboBox* comboBox_Transform, vtkGenericOpenGLRenderWindow* window, QComboBox* comboBox_Shapes);
 
     void Load();
 } // namespace
@@ -321,6 +324,7 @@ int main(int argc, char* argv[])
     shapesdroplist->addItem("Sphere");
     shapesdroplist->addItem("Square");
     shapesdroplist->addItem("Star");
+    shapesdroplist->addItem("Rosette");
     shapesdroplist->setCurrentIndex(0); // Set default value
     dockLayout->addWidget(shapesdroplist);
 
@@ -402,7 +406,7 @@ int main(int argc, char* argv[])
 
     // Connect Change Color 
     QObject::connect(trasform_button, &QPushButton::clicked,
-        [=, &transform_list, &window]() { Transform(transform_list, window); });
+        [=, &transform_list, &window]() { Transform(transform_list, window, shapesdroplist); });
 
     //shapestore.print();
 
@@ -989,6 +993,10 @@ namespace {
     renderer->AddActor(actor);
 
 }
+
+    void Draw_Rosette(int n_gon, double radius, string color, int thickness) {
+
+    }
 
     void Save(QComboBox* comboBox) {
         QString shape_name = comboBox->currentText();
@@ -1610,7 +1618,7 @@ namespace {
         }
     }
 
-    void ChangeColor(string color_name, vtkSmartPointer<vtkActor> temp_actor) {
+    void Change_Color(string color_name, vtkSmartPointer<vtkActor> temp_actor) {
         if (color_name == "Red")
         {
             temp_actor->GetProperty()->SetColor(1.0, 0.0, 0.0);
@@ -1645,38 +1653,56 @@ namespace {
         QString color_name = comboBox_Color->currentText();
         QString shape_name = comboBox_Shapes->currentText();
         std::string color_name_std = color_name.toStdString(); // Convert QString to std::string
-        if (shape_name == "Circle") {
-            ChangeColor(color_name_std, actor_circle); 
-        }
-        else if (shape_name == "Line") {
-            ChangeColor(color_name_std, actor);
-        }
-        else if (shape_name == "Ellipse") {
-            ChangeColor(color_name_std, actor_Ellipse);
-        }
-        else if (shape_name == "Arc") {
-            ChangeColor(color_name_std, actor_Arc);
-        }
-        else if (shape_name == "Sphere") {
-            ChangeColor(color_name_std, actor_Football);
-        }
-        else if (shape_name == "Hexahedron") {
-            ChangeColor(color_name_std, actor_Hexahedron);
-        }
-        else if (shape_name == "Regular Polygon") {
-            ChangeColor(color_name_std, actor_Regular_Polygon);
-        }
-        else if (shape_name == "Cylinder") {
-            ChangeColor(color_name_std, actor_Cylinder);
-        }
-        else if (shape_name == "Square") {
-            ChangeColor(color_name_std, actor_Square);
-        }
-        else if (shape_name == "Star") {
-            ChangeColor(color_name_std, actor_Star);
+        QMessageBox messageBox;
+        messageBox.setText("Choose which mode you want to color");
+        QAbstractButton* filledButton = messageBox.addButton(QMessageBox::tr("Last shape drawn"), QMessageBox::YesRole);
+        QAbstractButton* nonFilledButton = messageBox.addButton(QMessageBox::tr("All the Shapes"), QMessageBox::YesRole);
+        messageBox.exec();
+        QString buttonText = messageBox.clickedButton()->text();
+        color_mode = buttonText.toStdString();
+        if (color_mode == "Last shape drawn") {
+            if (shape_name == "Circle") {
+                Change_Color(color_name_std, actor_circle);
+            }
+            else if (shape_name == "Line") {
+                Change_Color(color_name_std, actor);
+            }
+            else if (shape_name == "Ellipse") {
+                Change_Color(color_name_std, actor_Ellipse);
+            }
+            else if (shape_name == "Arc") {
+                Change_Color(color_name_std, actor_Arc);
+            }
+            else if (shape_name == "Sphere") {
+                Change_Color(color_name_std, actor_Football);
+            }
+            else if (shape_name == "Hexahedron") {
+                Change_Color(color_name_std, actor_Hexahedron);
+            }
+            else if (shape_name == "Regular Polygon") {
+                Change_Color(color_name_std, actor_Regular_Polygon);
+            }
+            else if (shape_name == "Cylinder") {
+                Change_Color(color_name_std, actor_Cylinder);
+            }
+            else if (shape_name == "Square") {
+                Change_Color(color_name_std, actor_Square);
+            }
+            else if (shape_name == "Star") {
+                Change_Color(color_name_std, actor_Star);
+            }
+            else {
+                return;
+            }
         }
         else {
-            return;
+            vtkActorCollection* actors = renderer->GetActors(); // Get the collection of actors in the renderer
+            actors->InitTraversal(); // Initialize the actors traversal
+
+            vtkActor* actor_all = nullptr;
+            while ((actor_all = actors->GetNextActor()) != nullptr) {
+                Change_Color(color_name_std, actor_all);
+            }
         }
         window->Render();
     }
@@ -2037,7 +2063,18 @@ namespace {
             }
             Draw_Star(Radius_Star, "Red", 1.0);
         }
-
+        else if (shape_name == "Rosette") {
+            bool ok;
+            num_vertices_ros = QInputDialog::getDouble(nullptr, "Enter Number of vertices", "Enter the number of vertices of the Rosette:", 0.0, -100.0, 100.0, 2, &ok);
+            if (!ok) {
+                return;
+            }
+            Radius_Rosette = QInputDialog::getDouble(nullptr, "Enter the radius", "Enter the radius of the Rosette:", 0.0, -100.0, 100.0, 2, &ok);
+            if (!ok) {
+                return;
+            }
+            Draw_Rosette(num_vertices_ros, Radius_Rosette, "Red", 1.0);
+        }
         window->Render();
     }
 
@@ -2109,10 +2146,134 @@ namespace {
         window->Render(); // Render the window to reflect the changes
     }
 
-    void Transform(QComboBox* comboBox, vtkGenericOpenGLRenderWindow* window) {
-        QString tranform_state = comboBox->currentText();
-        if (tranform_state == "Translation") {
-
+    void Translation(vtkSmartPointer<vtkLineSource> temp_source, vtkDataSetMapper* temp_mapper) {
+        bool ok;
+        double m13 = QInputDialog::getDouble(nullptr, "Enter Transformation X", "Enter the Transformation X:", 0.0, -100.0, 100.0, 2, &ok);
+        if (!ok) {
+            return;
         }
+        double m23 = QInputDialog::getDouble(nullptr, "Enter Transformation Y", "Enter the Transformation Y:", 0.0, -100.0, 100.0, 2, &ok);
+        if (!ok) {
+            return;
+        }
+        // Get the points of the circle shape
+        vtkPoints* points = temp_source->GetPoints();
+
+        // Create a new vtkPoints object to store the translated points
+        vtkSmartPointer<vtkPoints> translatedPoints = vtkSmartPointer<vtkPoints>::New();
+
+        // Loop through each point and apply translation
+        for (vtkIdType i = 0; i < points->GetNumberOfPoints(); i++) {
+            double originalPoint[3];
+            points->GetPoint(i, originalPoint);
+            double translatedPoint[3] = { originalPoint[0] + m13, originalPoint[1] + m23, 1.0 };
+            translatedPoints->InsertNextPoint(translatedPoint);
+        }
+
+        // Set the translated points to the circle shape's vtkPoints object
+        temp_source->SetPoints(translatedPoints);
+
+        // Update the mapper with the modified points
+        temp_mapper->Update();
+    }
+
+    void Scaling(vtkSmartPointer<vtkLineSource> temp_source) {
+        bool ok;
+        double scalingFactorX = QInputDialog::getDouble(nullptr, "Enter Scaling factor X", "Enter the Scaling factor in X direction:", 0.0, -100.0, 100.0, 2, &ok);
+        // Example scaling factor in x-direction
+        if (!ok) {
+            return;
+        }
+        double scalingFactorY = QInputDialog::getDouble(nullptr, "Enter Scaling factor Y", "Enter the Scaling factor in Y direction:", 0.0, -100.0, 100.0, 2, &ok);
+        // Example scaling factor in y-direction
+        if (!ok) {
+            return;
+        }
+        // Get the points of the circle
+        vtkSmartPointer<vtkPoints> points = temp_source->GetPoints();
+        for (int i = 0; i < points->GetNumberOfPoints(); i++) {
+            double point[3];
+            points->GetPoint(i, point);
+            // Scale the x and y coordinates of the point
+            point[0] = scalingFactorX * point[0];
+            point[1] = scalingFactorY * point[1];
+            points->SetPoint(i, point);
+        }
+        temp_source->Modified(); // Mark the source as modified
+    }
+    void Transform(QComboBox* comboBox_Transform, vtkGenericOpenGLRenderWindow* window, QComboBox* comboBox_Shapes) {
+        QString transform_state = comboBox_Transform->currentText();
+        QString shape_name = comboBox_Shapes->currentText();
+        if (transform_state == "Translation") {
+            if (shape_name == "Circle") {
+                Translation(circle_Source, mapper_circle);
+            }
+            else if (shape_name == "Line") {
+                Translation(lineSource, mapper);
+            }
+            else if (shape_name == "Ellipse") {
+                Translation(Ellipse_Source, mapper_Ellipse);
+            }
+            else if (shape_name == "Arc") {
+                Translation(Arc_Source, mapper_Arc);
+            }
+            else if (shape_name == "Sphere") {
+                Translation(Football_Source, mapper_Football);
+            }
+            else if (shape_name == "Hexahedron") {
+                Translation(Hexahedron_Source, mapper_Hexahedron);
+            }
+            else if (shape_name == "Regular Polygon") {
+                Translation(Regular_Polygon_Source, mapper_Regular_Polygon);
+            }
+            else if (shape_name == "Cylinder") {
+                Translation(Cylinder_Source, mapper_Cylinder);
+            }
+            else if (shape_name == "Square") {
+                Translation(Square_Source, mapper_Square);
+            }
+            else if (shape_name == "Star") {
+                Translation(Star_Source, mapper_Star);
+            }
+            else {
+                return;
+            }
+        }
+        else if (transform_state == "Scaling") {
+            if (shape_name == "Circle") {
+                Scaling(circle_Source);
+            }
+            else if (shape_name == "Line") {
+                Scaling(lineSource);
+            }
+            else if (shape_name == "Ellipse") {
+                Scaling(Ellipse_Source);
+            }
+            else if (shape_name == "Arc") {
+                Scaling(Arc_Source);
+            }
+            else if (shape_name == "Sphere") {
+                Scaling(Football_Source);
+            }
+            else if (shape_name == "Hexahedron") {
+                Scaling(Hexahedron_Source);
+            }
+            else if (shape_name == "Regular Polygon") {
+                Scaling(Regular_Polygon_Source);
+            }
+            else if (shape_name == "Cylinder") {
+                Scaling(Cylinder_Source);
+            }
+            else if (shape_name == "Square") {
+                Scaling(Square_Source);
+            }
+            else if (shape_name == "Star") {
+                Scaling(Star_Source);
+            }
+            else {
+                return;
+            }
+        }
+        window->Render();
     }
 } // namespace
