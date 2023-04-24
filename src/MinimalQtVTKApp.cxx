@@ -23,6 +23,7 @@
 #include <QPointer>
 #include <QPushButton>
 #include <QVBoxLayout>
+#include <set> 
 
 #include <cmath>
 #include <cstdlib>
@@ -108,13 +109,15 @@ bool Poly_Line = 0;
 double picked[3]; // Declares an array of 3 doubles called "picked"
 string mode_line;
 string delete_mode;
-string color_mode;
+string color_mode = "One Shape";
 double x1_line;
 double y1_line;
 double x2_line;
 double y2_line;
 bool is_Polygon = false;
 int num_vertices_ros;
+set<QString> drawnShapes;
+int count_shapes = 0;
 
 namespace {
     void DrawLine(vtkRenderer* renderer, vtkPoints* points);
@@ -998,620 +1001,196 @@ namespace {
 
     }
 
+    string specify_color(double* color) {
+        // Get the name of the color based on its RGB value
+        if (color[0] == 1.0 && color[1] == 0.0 && color[2] == 0.0) {
+            return "Red";
+        }
+        else if (color[0] == 0.0 && color[1] == 1.0 && color[2] == 0.0) {
+            return "Green";
+        }
+        else if (color[0] == 0.0 && color[1] == 0.0 && color[2] == 1.0) {
+            return "Blue";
+        }
+        else if (color[0] == 1.0 && color[1] == 1.0 && color[2] == 0.0) {
+            return "Yellow";
+        }
+        else if (color[0] == 1.0 && color[1] == 0.0 && color[2] == 1.0) {
+            return "Magenta";
+        }
+        else if (color[0] == 0.0 && color[1] == 0.0 && color[2] == 0.0) {
+            return "Black";
+        }
+        else if (color[0] == 1.0 && color[1] == 1.0 && color[2] == 1.0) {
+            return "White";
+        }
+        else {
+            return "Unknown";
+        }
+    }
+
     void Save(QComboBox* comboBox) {
-        QString shape_name = comboBox->currentText();
-        if (shape_name == "Circle") {
-            //Get the color and thickness of the line
-            double* color = actor->GetProperty()->GetColor();
-            double thickness = actor->GetProperty()->GetLineWidth();
-            string color_name;
-            // Get the name of the color based on its RGB value
-            if (color[0] == 1.0 && color[1] == 0.0 && color[2] == 0.0) {
-                color_name = "Red";
-            }
-            else if (color[0] == 0.0 && color[1] == 1.0 && color[2] == 0.0) {
-                color_name = "Green";
-            }
-            else if (color[0] == 0.0 && color[1] == 0.0 && color[2] == 1.0) {
-                color_name = "Blue";
-            }
-            else if (color[0] == 1.0 && color[1] == 1.0 && color[2] == 0.0) {
-                color_name = "Yellow";
-            }
-            else if (color[0] == 1.0 && color[1] == 0.0 && color[2] == 1.0) {
-                color_name = "Magenta";
-            }
-            else if (color[0] == 0.0 && color[1] == 0.0 && color[2] == 0.0) {
-                color_name = "Black";
-            }
-            else if (color[0] == 1.0 && color[1] == 1.0 && color[2] == 1.0) {
-                color_name = "White";
-            }
-            else {
-                color_name = "Unknown";
-            }
-            // Ask user for TXT or CSV
-            QMessageBox messageBox;
-            messageBox.setText("Choose Save Type");
-            QAbstractButton* filledButton = messageBox.addButton(QMessageBox::tr("TXT"), QMessageBox::YesRole);
-            QAbstractButton* nonFilledButton = messageBox.addButton(QMessageBox::tr("CSV"), QMessageBox::YesRole);
-            messageBox.exec();
-            QString buttonText = messageBox.clickedButton()->text();
-            std::string mode = buttonText.toStdString();
-            if (mode == "TXT") {
-                QString filename_txt = QFileDialog::getSaveFileName(nullptr, "Save File", "", "Text files (*.txt)");
-                if (!filename_txt.isEmpty()) {
-                    // Open the TXT output file for writing
-                    std::ofstream outputFile_txt(filename_txt.toStdString());
-                    outputFile_txt << "Shape\tRadius\tColor\tThickness" << std::endl;
-                    outputFile_txt << "Circle\t" << Radius_Circle << "\t" << color_name << "\t" << thickness << std::endl;
-                    outputFile_txt.close();
-                }
-            }
-            else {
-                QString filename_csv = QFileDialog::getSaveFileName(nullptr, "Save File", "", "CSV files (*.csv)");
-                if (!filename_csv.isEmpty()) {
-                    // Open the CSV output file for writing
-                    std::ofstream outputFile_csv(filename_csv.toStdString());
-                    outputFile_csv << "Shape,Radius,Color,Thickness" << std::endl;
-                    outputFile_csv << "Circle," << Radius_Circle << "," << color_name << "," << thickness << std::endl;
-                    outputFile_csv.close();
-                }
+        // Access the first element in the set and convert it to a std::string
+        std::string shape_name = drawnShapes.begin()->toStdString();
 
-            }
-        }
-        else if (shape_name == "Sphere") {
-            //Get the color and thickness of the line
-            double* color = actor->GetProperty()->GetColor();
-            double thickness = actor->GetProperty()->GetLineWidth();
-            string color_name;
-            // Get the name of the color based on its RGB value
-            if (color[0] == 1.0 && color[1] == 0.0 && color[2] == 0.0) {
-                color_name = "Red";
-            }
-            else if (color[0] == 0.0 && color[1] == 1.0 && color[2] == 0.0) {
-                color_name = "Green";
-            }
-            else if (color[0] == 0.0 && color[1] == 0.0 && color[2] == 1.0) {
-                color_name = "Blue";
-            }
-            else if (color[0] == 1.0 && color[1] == 1.0 && color[2] == 0.0) {
-                color_name = "Yellow";
-            }
-            else if (color[0] == 1.0 && color[1] == 0.0 && color[2] == 1.0) {
-                color_name = "Magenta";
-            }
-            else if (color[0] == 0.0 && color[1] == 0.0 && color[2] == 0.0) {
-                color_name = "Black";
-            }
-            else if (color[0] == 1.0 && color[1] == 1.0 && color[2] == 1.0) {
-                color_name = "White";
-            }
-            else {
-                color_name = "Unknown";
-            }
-            // Ask user for TXT or CSV
-            QMessageBox messageBox;
-            messageBox.setText("Choose Save Type");
-            QAbstractButton* filledButton = messageBox.addButton(QMessageBox::tr("TXT"), QMessageBox::YesRole);
-            QAbstractButton* nonFilledButton = messageBox.addButton(QMessageBox::tr("CSV"), QMessageBox::YesRole);
-            messageBox.exec();
-            QString buttonText = messageBox.clickedButton()->text();
-            std::string mode = buttonText.toStdString();
-            if (mode == "TXT") {
-                QString filename_txt = QFileDialog::getSaveFileName(nullptr, "Save File", "", "Text files (*.txt)");
-                if (!filename_txt.isEmpty()) {
-                    // Open the TXT output file for writing
-                    std::ofstream outputFile_txt(filename_txt.toStdString());
-                    outputFile_txt << "Shape\tRadius\tColor\tThickness" << std::endl;
-                    outputFile_txt << "Sphere\t" << Radius_Sphere << "\t" << color_name << "\t" << thickness << std::endl;
-                    outputFile_txt.close();
-                }
-            }
-            else {
-                QString filename_csv = QFileDialog::getSaveFileName(nullptr, "Save File", "", "CSV files (*.csv)");
-                // If the user didn't cancel the file dialogs, write to the output files
-                if (!filename_csv.isEmpty()) {
-                    // Open the CSV output file for writing
-                    std::ofstream outputFile_csv(filename_csv.toStdString());
-                    outputFile_csv << "Shape,Radius,Color,Thickness" << std::endl;
-                    outputFile_csv << "Sphere," << Radius_Sphere << "," << color_name << "," << thickness << std::endl;
-                    outputFile_csv.close();
-                }
-            }
-        }
-        else if (shape_name == "Arc") {
-            //Get the color and thickness of the line
-            double* color = actor->GetProperty()->GetColor();
-            double thickness = actor->GetProperty()->GetLineWidth();
-            string color_name;
-            // Get the name of the color based on its RGB value
-            if (color[0] == 1.0 && color[1] == 0.0 && color[2] == 0.0) {
-                color_name = "Red";
-            }
-            else if (color[0] == 0.0 && color[1] == 1.0 && color[2] == 0.0) {
-                color_name = "Green";
-            }
-            else if (color[0] == 0.0 && color[1] == 0.0 && color[2] == 1.0) {
-                color_name = "Blue";
-            }
-            else if (color[0] == 1.0 && color[1] == 1.0 && color[2] == 0.0) {
-                color_name = "Yellow";
-            }
-            else if (color[0] == 1.0 && color[1] == 0.0 && color[2] == 1.0) {
-                color_name = "Magenta";
-            }
-            else if (color[0] == 0.0 && color[1] == 0.0 && color[2] == 0.0) {
-                color_name = "Black";
-            }
-            else if (color[0] == 1.0 && color[1] == 1.0 && color[2] == 1.0) {
-                color_name = "White";
-            }
-            else {
-                color_name = "Unknown";
-            }
-            // Ask user for TXT or CSV
-            QMessageBox messageBox;
-            messageBox.setText("Choose Save Type");
-            QAbstractButton* filledButton = messageBox.addButton(QMessageBox::tr("TXT"), QMessageBox::YesRole);
-            QAbstractButton* nonFilledButton = messageBox.addButton(QMessageBox::tr("CSV"), QMessageBox::YesRole);
-            messageBox.exec();
-            QString buttonText = messageBox.clickedButton()->text();
-            std::string mode = buttonText.toStdString();
-            if (mode == "TXT") {
-                QString filename_txt = QFileDialog::getSaveFileName(nullptr, "Save File", "", "Text files (*.txt)");
-                // If the user didn't cancel the file dialogs, write to the output files
-                if (!filename_txt.isEmpty()) {
-                    // Open the TXT output file for writing
-                    std::ofstream outputFile_txt(filename_txt.toStdString());
-                    outputFile_txt << "Shape\tRadius\tColor\tThickness" << std::endl;
-                    outputFile_txt << "Arc\t" << Radius_Arc << "\t" << color_name << "\t" << thickness << std::endl;
-                    outputFile_txt.close();
-                }
-            }
-            else {
-                QString filename_csv = QFileDialog::getSaveFileName(nullptr, "Save File", "", "CSV files (*.csv)");
-                // If the user didn't cancel the file dialogs, write to the output files
-                if (!filename_csv.isEmpty()) {
-                    // Open the CSV output file for writing
-                    std::ofstream outputFile_csv(filename_csv.toStdString());
-                    outputFile_csv << "Shape,Radius,Color,Thickness" << std::endl;
-                    outputFile_csv << "Arc," << Radius_Arc << "," << color_name << "," << thickness << std::endl;
-                    outputFile_csv.close();
-                }
-            }
-        }
-        else if (shape_name == "Hexahedron") {
-            //Get the color and thickness 
-            double* color = actor->GetProperty()->GetColor();
-            double thickness = actor->GetProperty()->GetLineWidth();
-            string color_name;
-            // Get the name of the color based on its RGB value
-            if (color[0] == 1.0 && color[1] == 0.0 && color[2] == 0.0) {
-                color_name = "Red";
-            }
-            else if (color[0] == 0.0 && color[1] == 1.0 && color[2] == 0.0) {
-                color_name = "Green";
-            }
-            else if (color[0] == 0.0 && color[1] == 0.0 && color[2] == 1.0) {
-                color_name = "Blue";
-            }
-            else if (color[0] == 1.0 && color[1] == 1.0 && color[2] == 0.0) {
-                color_name = "Yellow";
-            }
-            else if (color[0] == 1.0 && color[1] == 0.0 && color[2] == 1.0) {
-                color_name = "Magenta";
-            }
-            else if (color[0] == 0.0 && color[1] == 0.0 && color[2] == 0.0) {
-                color_name = "Black";
-            }
-            else if (color[0] == 1.0 && color[1] == 1.0 && color[2] == 1.0) {
-                color_name = "White";
-            }
-            else {
-                color_name = "Unknown";
-            }
-            // Ask user for TXT or CSV
-            QMessageBox messageBox;
-            messageBox.setText("Choose Save Type");
-            QAbstractButton* filledButton = messageBox.addButton(QMessageBox::tr("TXT"), QMessageBox::YesRole);
-            QAbstractButton* nonFilledButton = messageBox.addButton(QMessageBox::tr("CSV"), QMessageBox::YesRole);
-            messageBox.exec();
-            QString buttonText = messageBox.clickedButton()->text();
-            std::string mode = buttonText.toStdString();
-            if (mode == "TXT") {
-                QString filename_txt = QFileDialog::getSaveFileName(nullptr, "Save File", "", "Text files (*.txt)");
-                // If the user didn't cancel the file dialogs, write to the output files
-                if (!filename_txt.isEmpty()) {
-                    // Open the TXT output file for writing
-                    std::ofstream outputFile_txt(filename_txt.toStdString());
-                    outputFile_txt << "Shape\t\tRadius\tColor\tThickness" << std::endl;
-                    outputFile_txt << "Hexahedron\t" << Radius_Hexahedron << "\t" << color_name << "\t" << thickness << std::endl;
-                    outputFile_txt.close();
-                }
-            }
-            else {
-                QString filename_csv = QFileDialog::getSaveFileName(nullptr, "Save File", "", "CSV files (*.csv)");
+        // Ask user for TXT or CSV
+        QMessageBox messageBox;
+        messageBox.setText("Choose Save Type");
+        QAbstractButton* txtButton = messageBox.addButton(QMessageBox::tr("TXT"), QMessageBox::YesRole);
+        QAbstractButton* csvButton = messageBox.addButton(QMessageBox::tr("CSV"), QMessageBox::YesRole);
+        messageBox.exec();
+        QString buttonText = messageBox.clickedButton()->text();
+        std::string mode = buttonText.toStdString();
 
-                // If the user didn't cancel the file dialogs, write to the output files
-                if (!filename_csv.isEmpty()) {
-                    // Open the CSV output file for writing
-                    std::ofstream outputFile_csv(filename_csv.toStdString());
-                    outputFile_csv << "Shape,Radius,Color,Thickness" << std::endl;
-                    outputFile_csv << "Hexahedron," << Radius_Hexahedron << "," << color_name << "," << thickness << std::endl;
-                    outputFile_csv.close();
-                }
-            }
+        QString filename_txt;
+        QString filename_csv;
+        if (mode == "TXT") {
+            filename_txt = QFileDialog::getSaveFileName(nullptr, "Save File", "", "Text files (*.txt)");
         }
-        else if (shape_name == "Square") {
-            //Get the color and thickness 
-            double* color = actor->GetProperty()->GetColor();
-            double thickness = actor->GetProperty()->GetLineWidth();
-            string color_name;
-            // Get the name of the color based on its RGB value
-            if (color[0] == 1.0 && color[1] == 0.0 && color[2] == 0.0) {
-                color_name = "Red";
-            }
-            else if (color[0] == 0.0 && color[1] == 1.0 && color[2] == 0.0) {
-                color_name = "Green";
-            }
-            else if (color[0] == 0.0 && color[1] == 0.0 && color[2] == 1.0) {
-                color_name = "Blue";
-            }
-            else if (color[0] == 1.0 && color[1] == 1.0 && color[2] == 0.0) {
-                color_name = "Yellow";
-            }
-            else if (color[0] == 1.0 && color[1] == 0.0 && color[2] == 1.0) {
-                color_name = "Magenta";
-            }
-            else if (color[0] == 0.0 && color[1] == 0.0 && color[2] == 0.0) {
-                color_name = "Black";
-            }
-            else if (color[0] == 1.0 && color[1] == 1.0 && color[2] == 1.0) {
-                color_name = "White";
-            }
-            else {
-                color_name = "Unknown";
-            }
-            // Ask user for TXT or CSV
-            QMessageBox messageBox;
-            messageBox.setText("Choose Save Type");
-            QAbstractButton* filledButton = messageBox.addButton(QMessageBox::tr("TXT"), QMessageBox::YesRole);
-            QAbstractButton* nonFilledButton = messageBox.addButton(QMessageBox::tr("CSV"), QMessageBox::YesRole);
-            messageBox.exec();
-            QString buttonText = messageBox.clickedButton()->text();
-            std::string mode = buttonText.toStdString();
-            if (mode == "TXT") {
-                QString filename_txt = QFileDialog::getSaveFileName(nullptr, "Save File", "", "Text files (*.txt)");
-                // If the user didn't cancel the file dialogs, write to the output files
-                if (!filename_txt.isEmpty()) {
-                    // Open the TXT output file for writing
-                    std::ofstream outputFile_txt(filename_txt.toStdString());
-                    outputFile_txt << "Shape\tRadius\tColor\tThickness" << std::endl;
-                    outputFile_txt << "Square\t" << Radius_Square << "\t" << color_name << "\t" << thickness << std::endl;
-                    outputFile_txt.close();
-                }
-            }
-            else {
-                QString filename_csv = QFileDialog::getSaveFileName(nullptr, "Save File", "", "CSV files (*.csv)");
-                // If the user didn't cancel the file dialogs, write to the output files
-                if (!filename_csv.isEmpty()) {
-                    // Open the CSV output file for writing
-                    std::ofstream outputFile_csv(filename_csv.toStdString());
-                    outputFile_csv << "Shape,Radius,Color,Thickness" << std::endl;
-                    outputFile_csv << "Square," << Radius_Square << "," << color_name << "," << thickness << std::endl;
-                    outputFile_csv.close();
-                }
-            }
+        else {
+            filename_csv = QFileDialog::getSaveFileName(nullptr, "Save File", "", "CSV files (*.csv)");
         }
-        else if (shape_name == "Regular Polygon") {
-            //Get the color and thickness 
-            double* color = actor->GetProperty()->GetColor();
-            double thickness = actor->GetProperty()->GetLineWidth();
-            string color_name;
-            // Get the name of the color based on its RGB value
-            if (color[0] == 1.0 && color[1] == 0.0 && color[2] == 0.0) {
-                color_name = "Red";
-            }
-            else if (color[0] == 0.0 && color[1] == 1.0 && color[2] == 0.0) {
-                color_name = "Green";
-            }
-            else if (color[0] == 0.0 && color[1] == 0.0 && color[2] == 1.0) {
-                color_name = "Blue";
-            }
-            else if (color[0] == 1.0 && color[1] == 1.0 && color[2] == 0.0) {
-                color_name = "Yellow";
-            }
-            else if (color[0] == 1.0 && color[1] == 0.0 && color[2] == 1.0) {
-                color_name = "Magenta";
-            }
-            else if (color[0] == 0.0 && color[1] == 0.0 && color[2] == 0.0) {
-                color_name = "Black";
-            }
-            else if (color[0] == 1.0 && color[1] == 1.0 && color[2] == 1.0) {
-                color_name = "White";
-            }
-            else {
-                color_name = "Unknown";
-            }
-            // Ask user for TXT or CSV
-            QMessageBox messageBox;
-            messageBox.setText("Choose Save Type");
-            QAbstractButton* filledButton = messageBox.addButton(QMessageBox::tr("TXT"), QMessageBox::YesRole);
-            QAbstractButton* nonFilledButton = messageBox.addButton(QMessageBox::tr("CSV"), QMessageBox::YesRole);
-            messageBox.exec();
-            QString buttonText = messageBox.clickedButton()->text();
-            std::string mode = buttonText.toStdString();
-            if (mode == "TXT") {
-                QString filename_txt = QFileDialog::getSaveFileName(nullptr, "Save File", "", "Text files (*.txt)");
-                // If the user didn't cancel the file dialogs, write to the output files
-                if (!filename_txt.isEmpty()) {
-                    // Open the TXT output file for writing
-                    std::ofstream outputFile_txt(filename_txt.toStdString());
-                    outputFile_txt << "Shape\t\t\tRadius\tNumber of sides\tColor\tThickness" << std::endl;
-                    outputFile_txt << "Regular_Polygon\t" << "\t" << Radius_Reg_Polygon << "\t" << NO_POINTS << "\t\t" << color_name << "\t" << thickness << std::endl;
-                    outputFile_txt.close();
-                }
-            }
-            else {
-                QString filename_csv = QFileDialog::getSaveFileName(nullptr, "Save File", "", "CSV files (*.csv)");
-                // If the user didn't cancel the file dialogs, write to the output files
-                if (!filename_csv.isEmpty()) {
-                    // Open the CSV output file for writing
-                    std::ofstream outputFile_csv(filename_csv.toStdString());
-                    outputFile_csv << "Shape,Radius,Number of sides,Color,Thickness" << std::endl;
-                    outputFile_csv << "Regular Polygon," << Radius_Reg_Polygon << "," << NO_POINTS << "," << color_name << "," << thickness << std::endl;
-                    outputFile_csv.close();
-                }
-            }
-        }
-        else if (shape_name == "Cylinder") {
-            //Get the color and thickness of the line
-            double* color = actor->GetProperty()->GetColor();
-            double thickness = actor->GetProperty()->GetLineWidth();
-            string color_name;
-            // Get the name of the color based on its RGB value
-            if (color[0] == 1.0 && color[1] == 0.0 && color[2] == 0.0) {
-                color_name = "Red";
-            }
-            else if (color[0] == 0.0 && color[1] == 1.0 && color[2] == 0.0) {
-                color_name = "Green";
-            }
-            else if (color[0] == 0.0 && color[1] == 0.0 && color[2] == 1.0) {
-                color_name = "Blue";
-            }
-            else if (color[0] == 1.0 && color[1] == 1.0 && color[2] == 0.0) {
-                color_name = "Yellow";
-            }
-            else if (color[0] == 1.0 && color[1] == 0.0 && color[2] == 1.0) {
-                color_name = "Magenta";
-            }
-            else if (color[0] == 0.0 && color[1] == 0.0 && color[2] == 0.0) {
-                color_name = "Black";
-            }
-            else if (color[0] == 1.0 && color[1] == 1.0 && color[2] == 1.0) {
-                color_name = "White";
-            }
-            else {
-                color_name = "Unknown";
-            }
-            // Ask user for TXT or CSV
-            QMessageBox messageBox;
-            messageBox.setText("Choose Save Type");
-            QAbstractButton* filledButton = messageBox.addButton(QMessageBox::tr("TXT"), QMessageBox::YesRole);
-            QAbstractButton* nonFilledButton = messageBox.addButton(QMessageBox::tr("CSV"), QMessageBox::YesRole);
-            messageBox.exec();
-            QString buttonText = messageBox.clickedButton()->text();
-            std::string mode = buttonText.toStdString();
-            if (mode == "TXT") {
-                QString filename_txt = QFileDialog::getSaveFileName(nullptr, "Save File", "", "Text files (*.txt)");
-                // If the user didn't cancel the file dialogs, write to the output files
-                if (!filename_txt.isEmpty()) {
-                    // Open the TXT output file for writing
-                    std::ofstream outputFile_txt(filename_txt.toStdString());
-                    outputFile_txt << "Shape\t\tRadius\tHeight\tColor\tThickness" << std::endl;
-                    outputFile_txt << "Cylinder\t" << Radius_Cylinder << "\t" << Height_Cylinder << "\t" << color_name << "\t" << thickness << std::endl;
-                    outputFile_txt.close();
-                }
-            }
-            else {
-                QString filename_csv = QFileDialog::getSaveFileName(nullptr, "Save File", "", "CSV files (*.csv)");
-                // If the user didn't cancel the file dialogs, write to the output files
-                if (!filename_csv.isEmpty()) {
-                    // Open the CSV output file for writing
-                    std::ofstream outputFile_csv(filename_csv.toStdString());
-                    outputFile_csv << "Shape,Radius,Height,Color,Thickness" << std::endl;
-                    outputFile_csv << "Cylinder," << Radius_Cylinder << "," << Height_Cylinder << "," << color_name << "," << thickness << std::endl;
-                    outputFile_csv.close();
-                }
-            }
-        }
-        else if (shape_name == "Ellipse") {
-            //Get the color and thickness of the line
-            double* color = actor->GetProperty()->GetColor();
-            double thickness = actor->GetProperty()->GetLineWidth();
-            string color_name;
-            // Get the name of the color based on its RGB value
-            if (color[0] == 1.0 && color[1] == 0.0 && color[2] == 0.0) {
-                color_name = "Red";
-            }
-            else if (color[0] == 0.0 && color[1] == 1.0 && color[2] == 0.0) {
-                color_name = "Green";
-            }
-            else if (color[0] == 0.0 && color[1] == 0.0 && color[2] == 1.0) {
-                color_name = "Blue";
-            }
-            else if (color[0] == 1.0 && color[1] == 1.0 && color[2] == 0.0) {
-                color_name = "Yellow";
-            }
-            else if (color[0] == 1.0 && color[1] == 0.0 && color[2] == 1.0) {
-                color_name = "Magenta";
-            }
-            else if (color[0] == 0.0 && color[1] == 0.0 && color[2] == 0.0) {
-                color_name = "Black";
-            }
-            else if (color[0] == 1.0 && color[1] == 1.0 && color[2] == 1.0) {
-                color_name = "White";
-            }
-            else {
-                color_name = "Unknown";
-            }
-            // Ask user for TXT or CSV
-            QMessageBox messageBox;
-            messageBox.setText("Choose Save Type");
-            QAbstractButton* filledButton = messageBox.addButton(QMessageBox::tr("TXT"), QMessageBox::YesRole);
-            QAbstractButton* nonFilledButton = messageBox.addButton(QMessageBox::tr("CSV"), QMessageBox::YesRole);
-            messageBox.exec();
-            QString buttonText = messageBox.clickedButton()->text();
-            std::string mode = buttonText.toStdString();
-            if (mode == "TXT") {
-                QString filename_txt = QFileDialog::getSaveFileName(nullptr, "Save File", "", "Text files (*.txt)");
-                // If the user didn't cancel the file dialogs, write to the output files
-                if (!filename_txt.isEmpty()) {
-                    // Open the TXT output file for writing
-                    std::ofstream outputFile_txt(filename_txt.toStdString());
-                    outputFile_txt << "Shape\tMajor Axis\tMinor Axis\tColor\tThickness" << std::endl;
-                    outputFile_txt << "Ellipse\t" << MAJOR_AXIS << "\t\t" << MINOR_AXIS << "\t\t" << color_name << "\t" << thickness << std::endl;
-                    outputFile_txt.close();
-                }
-            }
-            else {
-                QString filename_csv = QFileDialog::getSaveFileName(nullptr, "Save File", "", "CSV files (*.csv)");
-                // If the user didn't cancel the file dialogs, write to the output files
-                if (!filename_csv.isEmpty()) {
-                    // Open the CSV output file for writing
-                    std::ofstream outputFile_csv(filename_csv.toStdString());
-                    outputFile_csv << "Shape,Major Axis,Minor Axis,Color,Thickness" << std::endl;
-                    outputFile_csv << "Ellipse," << MAJOR_AXIS << "," << MINOR_AXIS << "," << color_name << "," << thickness << std::endl;
-                    outputFile_csv.close();
-                }
-            }
-        }
-        else if (shape_name == "Star") {
-            //Get the color and thickness of the line
-            double* color = actor->GetProperty()->GetColor();
-            double thickness = actor->GetProperty()->GetLineWidth();
-            string color_name;
-            // Get the name of the color based on its RGB value
-            if (color[0] == 1.0 && color[1] == 0.0 && color[2] == 0.0) {
-                color_name = "Red";
-            }
-            else if (color[0] == 0.0 && color[1] == 1.0 && color[2] == 0.0) {
-                color_name = "Green";
-            }
-            else if (color[0] == 0.0 && color[1] == 0.0 && color[2] == 1.0) {
-                color_name = "Blue";
-            }
-            else if (color[0] == 1.0 && color[1] == 1.0 && color[2] == 0.0) {
-                color_name = "Yellow";
-            }
-            else if (color[0] == 1.0 && color[1] == 0.0 && color[2] == 1.0) {
-                color_name = "Magenta";
-            }
-            else if (color[0] == 0.0 && color[1] == 0.0 && color[2] == 0.0) {
-                color_name = "Black";
-            }
-            else if (color[0] == 1.0 && color[1] == 1.0 && color[2] == 1.0) {
-                color_name = "White";
-            }
-            else {
-                color_name = "Unknown";
-            }
-            // Ask user for TXT or CSV
-            QMessageBox messageBox;
-            messageBox.setText("Choose Save Type");
-            QAbstractButton* filledButton = messageBox.addButton(QMessageBox::tr("TXT"), QMessageBox::YesRole);
-            QAbstractButton* nonFilledButton = messageBox.addButton(QMessageBox::tr("CSV"), QMessageBox::YesRole);
-            messageBox.exec();
-            QString buttonText = messageBox.clickedButton()->text();
-            std::string mode = buttonText.toStdString();
-            if (mode == "TXT") {
-                QString filename_txt = QFileDialog::getSaveFileName(nullptr, "Save File", "", "Text files (*.txt)");
-                // If the user didn't cancel the file dialogs, write to the output files
-                if (!filename_txt.isEmpty()) {
-                    // Open the TXT output file for writing
-                    std::ofstream outputFile_txt(filename_txt.toStdString());
-                    outputFile_txt << "Shape\tRadius\tColor\tThickness" << std::endl;
-                    outputFile_txt << "Star\t" << Radius_Star << "\t" << color_name << "\t" << thickness << std::endl;
-                    outputFile_txt.close();
-                }
-            }
-            else {
-                QString filename_csv = QFileDialog::getSaveFileName(nullptr, "Save File", "", "CSV files (*.csv)");
-                // If the user didn't cancel the file dialogs, write to the output files
-                if (!filename_csv.isEmpty()) {
-                    // Open the CSV output file for writing
-                    std::ofstream outputFile_csv(filename_csv.toStdString());
-                    outputFile_csv << "Shape,Radius,Color,Thickness" << std::endl;
-                    outputFile_csv << "Star," << Radius_Star << "," << color_name << "," << thickness << std::endl;
-                    outputFile_csv.close();
-                }
-            }
-        }
-        else if (shape_name == "Line") {
-            //Get the color and thickness of the line
-            double* color = actor->GetProperty()->GetColor();
-            double thickness = actor->GetProperty()->GetLineWidth();
-            string color_name;
-            // Get the name of the color based on its RGB value
-            if (color[0] == 1.0 && color[1] == 0.0 && color[2] == 0.0) {
-                color_name = "Red";
-            }
-            else if (color[0] == 0.0 && color[1] == 1.0 && color[2] == 0.0) {
-                color_name = "Green";
-            }
-            else if (color[0] == 0.0 && color[1] == 0.0 && color[2] == 1.0) {
-                color_name = "Blue";
-            }
-            else if (color[0] == 1.0 && color[1] == 1.0 && color[2] == 0.0) {
-                color_name = "Yellow";
-            }
-            else if (color[0] == 1.0 && color[1] == 0.0 && color[2] == 1.0) {
-                color_name = "Magenta";
-            }
-            else if (color[0] == 0.0 && color[1] == 0.0 && color[2] == 0.0) {
-                color_name = "Black";
-            }
-            else if (color[0] == 1.0 && color[1] == 1.0 && color[2] == 1.0) {
-                color_name = "White";
-            }
-            else {
-                color_name = "Unknown";
-            }
-            // Ask user for TXT or CSV
-            QMessageBox messageBox;
-            messageBox.setText("Choose Save Type");
-            QAbstractButton* filledButton = messageBox.addButton(QMessageBox::tr("TXT"), QMessageBox::YesRole);
-            QAbstractButton* nonFilledButton = messageBox.addButton(QMessageBox::tr("CSV"), QMessageBox::YesRole);
-            messageBox.exec();
-            QString buttonText = messageBox.clickedButton()->text();
-            std::string mode = buttonText.toStdString();
-            if (mode == "TXT") {
-                if (mode_line == "Enter points")
-                {
-                    QString filename_txt = QFileDialog::getSaveFileName(nullptr, "Save File", "", "Text files (*.txt)");
-                    if (!filename_txt.isEmpty()) {
-                        // Open the TXT output file for writing
-                        std::ofstream outputFile_txt(filename_txt.toStdString());
-                        outputFile_txt << "Shape\tX1\tY1\tX2\tY2\tColor\tThickness" << std::endl;
-                        outputFile_txt << "Line\t" << x1_line << "\t" << y1_line << "\t" << x2_line << "\t" << y2_line << "\t" << color_name << "\t" << thickness << std::endl;
-                        outputFile_txt.close();
+
+        if (mode == "TXT") {
+            if (!filename_txt.isEmpty()) {
+                // Open the TXT output file for writing
+                std::ofstream outputFile_txt(filename_txt.toStdString());
+                outputFile_txt << "Shape\t\tRadius\tMajor Axis\tMinor Axis\tHeight\tNumber of sides\tColor\tThickness" << std::endl;
+                for (const auto& shape : drawnShapes) {
+                    if (shape == "Circle") {
+                        // Get the properties of the circle
+                        double* color = actor_circle->GetProperty()->GetColor();
+                        double thickness = actor_circle->GetProperty()->GetLineWidth();
+                        string color_name = specify_color(color);
+                        outputFile_txt << "Circle\t\t" << Radius_Circle << "\t" << "-" << "\t\t" << "-" << "\t\t" << "-" << "\t" << "-" << "\t\t" << color_name << "\t" << thickness << std::endl;
+                    }
+                    else if (shape == "Star") {
+                        //Get the color and thickness 
+                        double* color = actor_Star->GetProperty()->GetColor();
+                        double thickness = actor_Star->GetProperty()->GetLineWidth();
+                        string color_name = specify_color(color);
+                        outputFile_txt << "Star\t\t" << Radius_Star << "\t" << "-" << "\t\t" << "-" << "\t\t" << "-" << "\t" << "-" << "\t\t" << color_name << "\t" << thickness << std::endl;
+                    }
+                    else if (shape == "Ellipse") {
+                        //Get the color and thickness of the Ellipse
+                        double* color = actor_Ellipse->GetProperty()->GetColor();
+                        double thickness = actor_Ellipse->GetProperty()->GetLineWidth();
+                        string color_name = specify_color(color);
+                        outputFile_txt << "Ellipse\t\t" << "-" << "\t" << MAJOR_AXIS << "\t\t" << MINOR_AXIS << "\t\t" << "-" << "\t" << "-" << "\t\t" << color_name << "\t" << thickness << std::endl;
+                    }
+                    else if (shape == "Cylinder") {
+                        //Get the color and thickness of the Cylinder
+                        double* color = actor_Cylinder->GetProperty()->GetColor();
+                        double thickness = actor_Cylinder->GetProperty()->GetLineWidth();
+                        string color_name = specify_color(color);
+                        outputFile_txt << "Cylinder\t" << Radius_Cylinder << "\t" << "-" << "\t\t" << "-" << "\t\t" << Height_Cylinder << "\t" << "-" << "\t\t" << color_name << "\t" << thickness << std::endl;
+                    }
+                    else if (shape == "Regular Polygon") {
+                        //Get the color and thickness of the Regular Polygon
+                        double* color = actor_Regular_Polygon->GetProperty()->GetColor();
+                        double thickness = actor_Regular_Polygon->GetProperty()->GetLineWidth();
+                        string color_name = specify_color(color);
+                        outputFile_txt << "Regular Polygon\t" << Radius_Reg_Polygon << "\t" << "-" << "\t\t" << "-" << "\t\t" << "-" << "\t" << NO_POINTS << "\t\t" << color_name << "\t" << thickness << std::endl;
+                    }
+                    else if (shape == "Square") {
+                        //Get the color and thickness of the Square
+                        double* color = actor_Square->GetProperty()->GetColor();
+                        double thickness = actor_Square->GetProperty()->GetLineWidth();
+                        string color_name = specify_color(color);
+                        outputFile_txt << "Square\t\t" << Radius_Star << "\t" << "-" << "\t\t" << "-" << "\t\t" << "-" << "\t" << "-" << "\t\t" << color_name << "\t" << thickness << std::endl;
+                    }
+                    else if (shape == "Hexahedron") {
+                        //Get the color and thickness of the Hexahedron
+                        double* color = actor_Hexahedron->GetProperty()->GetColor();
+                        double thickness = actor_Hexahedron->GetProperty()->GetLineWidth();
+                        string color_name = specify_color(color);
+                        outputFile_txt << "Hexahedron\t" << Radius_Hexahedron << "\t" << "-" << "\t\t" << "-" << "\t\t" << "-" << "\t" << "-" << "\t\t" << color_name << "\t" << thickness << std::endl;
+                    }
+                    else if (shape == "Arc") {
+                        //Get the color and thickness of the Arc
+                        double* color = actor_Arc->GetProperty()->GetColor();
+                        double thickness = actor_Arc->GetProperty()->GetLineWidth();
+                        string color_name = specify_color(color);
+                        outputFile_txt << "Arc\t\t" << Radius_Arc << "\t" << "-" << "\t\t" << "-" << "\t\t" << "-" << "\t" << "-" << "\t\t" << color_name << "\t" << thickness << std::endl;
+                    }
+                    else if (shape == "Sphere") {
+                        //Get the color and thickness of the Sphere
+                        double* color = actor_Football->GetProperty()->GetColor();
+                        double thickness = actor_Football->GetProperty()->GetLineWidth();
+                        string color_name = specify_color(color);
+                        outputFile_txt << "Sphere\t\t" << Radius_Sphere << "\t" << "-" << "\t\t" << "-" << "\t\t" << "-" << "\t" << "-" << "\t\t" << color_name << "\t" << thickness << std::endl;
                     }
                 }
-                else {
-
-                }
             }
-            else {
-                if (mode_line == "Enter points")
-                {
-                    QString filename_csv = QFileDialog::getSaveFileName(nullptr, "Save File", "", "CSV files (*.csv)");
-                    if (!filename_csv.isEmpty()) {
-                        // Open the CSV output file for writing
-                        std::ofstream outputFile_csv(filename_csv.toStdString());
-                        outputFile_csv << "Shape,X1,Y1,X2,Y2,Color,Thickness" << std::endl;
-                        outputFile_csv << "Line," << x1_line << "," << y1_line << "," << x2_line << "," << y2_line << "," << color_name << "," << thickness << std::endl;
-                        outputFile_csv.close();
+        }
+        else {
+            if (!filename_csv.isEmpty()) {
+                // Open the CSV output file for writing
+                std::ofstream outputFile_csv(filename_csv.toStdString());
+                outputFile_csv << "Shape,Radius,Major Axis,Minor Axis,Height,Number of sides,Color,Thickness" << std::endl;
+                for (const auto& shape : drawnShapes) {
+                    if (shape == "Circle") {
+                        // Get the properties of the circle
+                        double* color = actor_circle->GetProperty()->GetColor();
+                        double thickness = actor_circle->GetProperty()->GetLineWidth();
+                        string color_name = specify_color(color);
+                        outputFile_csv << "Circle," << Radius_Circle << "," << "-" << "," << "-" << "," << "-" << "," << "-" << "," << color_name << "," << thickness << std::endl;
+                    }
+                    else if (shape == "Square") {
+                        //Get the color and thickness 
+                        double* color = actor_Square->GetProperty()->GetColor();
+                        double thickness = actor_Square->GetProperty()->GetLineWidth();
+                        string color_name = specify_color(color);
+                        outputFile_csv << "Square," << Radius_Square << "," << "-" << "," << "-" << "," << "-" << "," << "-" << "," << color_name << "," << thickness << std::endl;
+                    }
+                    else if (shape == "Star") {
+                        //Get the color and thickness of the Star
+                        double* color = actor_Star->GetProperty()->GetColor();
+                        double thickness = actor_Star->GetProperty()->GetLineWidth();
+                        string color_name = specify_color(color);
+                        outputFile_csv << "Star," << Radius_Star << "," << "-" << "," << "-" << "," << "-" << "," << "-" << "," << color_name << "," << thickness << std::endl;
+                    }
+                    else if (shape == "Ellipse") {
+                        //Get the color and thickness of the Ellipse
+                        double* color = actor_Ellipse->GetProperty()->GetColor();
+                        double thickness = actor_Ellipse->GetProperty()->GetLineWidth();
+                        string color_name = specify_color(color);
+                        outputFile_csv << "Ellipse," << "-" << "," << MAJOR_AXIS << "," << MINOR_AXIS << "," << "-" << "," << "-" << "," << color_name << "," << thickness << std::endl;
+                    }
+                    else if (shape == "Cylinder") {
+                        //Get the color and thickness of the Cylinder
+                        double* color = actor_Cylinder->GetProperty()->GetColor();
+                        double thickness = actor_Cylinder->GetProperty()->GetLineWidth();
+                        string color_name = specify_color(color);
+                        outputFile_csv << "Cylinder," << Radius_Cylinder << "," << "-" << "," << "-" << "," << Height_Cylinder << "," << "-" << "," << color_name << "," << thickness << std::endl;
+                    }
+                    else if (shape == "Regular Polygon") {
+                        //Get the color and thickness of the Regular Polygon
+                        double* color = actor_Regular_Polygon->GetProperty()->GetColor();
+                        double thickness = actor_Regular_Polygon->GetProperty()->GetLineWidth();
+                        string color_name = specify_color(color);
+                        outputFile_csv << "Regular Polygon," << Radius_Reg_Polygon << "," << "-" << "," << "-" << "," << "-" << "," << NO_POINTS << "," << color_name << "," << thickness << std::endl;
+                    }
+                    else if (shape == "Hexahedron") {
+                        //Get the color and thickness of the Hexahedron
+                        double* color = actor_Hexahedron->GetProperty()->GetColor();
+                        double thickness = actor_Hexahedron->GetProperty()->GetLineWidth();
+                        string color_name = specify_color(color);
+                        outputFile_csv << "Hexahedron," << Radius_Hexahedron << "," << "-" << "," << "-" << "," << "-" << "," << "-" << "," << color_name << "," << thickness << std::endl;
+                    }
+                    else if (shape == "Arc") {
+                        //Get the color and thickness of the Arc
+                        double* color = actor_Arc->GetProperty()->GetColor();
+                        double thickness = actor_Arc->GetProperty()->GetLineWidth();
+                        string color_name = specify_color(color);
+                        outputFile_csv << "Arc," << Radius_Arc << "," << "-" << "," << "-" << "," << "-" << "," << "-" << "," << color_name << "," << thickness << std::endl;
+                    }
+                    else if (shape == "Sphere") {
+                        //Get the color and thickness of the Sphere
+                        double* color = actor_Football->GetProperty()->GetColor();
+                        double thickness = actor_Football->GetProperty()->GetLineWidth();
+                        string color_name = specify_color(color);
+                        outputFile_csv << "Sphere," << Radius_Sphere << "," << "-" << "," << "-" << "," << "-" << "," << "-" << "," << color_name << "," << thickness << std::endl;
                     }
                 }
             }
@@ -1653,13 +1232,16 @@ namespace {
         QString color_name = comboBox_Color->currentText();
         QString shape_name = comboBox_Shapes->currentText();
         std::string color_name_std = color_name.toStdString(); // Convert QString to std::string
-        QMessageBox messageBox;
-        messageBox.setText("Choose which mode you want to color");
-        QAbstractButton* filledButton = messageBox.addButton(QMessageBox::tr("Last shape drawn"), QMessageBox::YesRole);
-        QAbstractButton* nonFilledButton = messageBox.addButton(QMessageBox::tr("All the Shapes"), QMessageBox::YesRole);
-        messageBox.exec();
-        QString buttonText = messageBox.clickedButton()->text();
-        color_mode = buttonText.toStdString();
+
+        if (count_shapes > 1) {
+            QMessageBox messageBox;
+            messageBox.setText("Choose which mode you want to color");
+            QAbstractButton* filledButton = messageBox.addButton(QMessageBox::tr("Last shape drawn"), QMessageBox::YesRole);
+            QAbstractButton* nonFilledButton = messageBox.addButton(QMessageBox::tr("All the Shapes"), QMessageBox::YesRole);
+            messageBox.exec();
+            QString buttonText = messageBox.clickedButton()->text();
+            color_mode = buttonText.toStdString();
+        }
         if (color_mode == "Last shape drawn") {
             if (shape_name == "Circle") {
                 Change_Color(color_name_std, actor_circle);
@@ -1695,7 +1277,7 @@ namespace {
                 return;
             }
         }
-        else {
+        else if (color_mode == "All the Shapes") {
             vtkActorCollection* actors = renderer->GetActors(); // Get the collection of actors in the renderer
             actors->InitTraversal(); // Initialize the actors traversal
 
@@ -1703,6 +1285,44 @@ namespace {
             while ((actor_all = actors->GetNextActor()) != nullptr) {
                 Change_Color(color_name_std, actor_all);
             }
+        }
+        else if (color_mode == "One Shape") {
+            if (shape_name == "Circle") {
+                Change_Color(color_name_std, actor_circle);
+            }
+            else if (shape_name == "Line") {
+                Change_Color(color_name_std, actor);
+            }
+            else if (shape_name == "Ellipse") {
+                Change_Color(color_name_std, actor_Ellipse);
+            }
+            else if (shape_name == "Arc") {
+                Change_Color(color_name_std, actor_Arc);
+            }
+            else if (shape_name == "Sphere") {
+                Change_Color(color_name_std, actor_Football);
+            }
+            else if (shape_name == "Hexahedron") {
+                Change_Color(color_name_std, actor_Hexahedron);
+            }
+            else if (shape_name == "Regular Polygon") {
+                Change_Color(color_name_std, actor_Regular_Polygon);
+            }
+            else if (shape_name == "Cylinder") {
+                Change_Color(color_name_std, actor_Cylinder);
+            }
+            else if (shape_name == "Square") {
+                Change_Color(color_name_std, actor_Square);
+            }
+            else if (shape_name == "Star") {
+                Change_Color(color_name_std, actor_Star);
+            }
+            else {
+                return;
+            }
+        }
+        else {
+            return;
         }
         window->Render();
     }
@@ -1939,7 +1559,9 @@ namespace {
             if (!ok) {
                 return;
             }
+            drawnShapes.insert(shape_name);
             Draw_circle(Radius_Circle, "Red", 1.0);
+            count_shapes++;
         }
         else if (shape_name == "Sphere") {
             bool ok;
@@ -1947,7 +1569,9 @@ namespace {
             if (!ok) {
                 return;
             }
+            drawnShapes.insert(shape_name);
             Draw_Football(Radius_Sphere, "Red", 1.0);
+            count_shapes++;
         }
         else if (shape_name == "Arc")
         {
@@ -1956,7 +1580,9 @@ namespace {
             if (!ok) {
                 return;
             }
+            drawnShapes.insert(shape_name);
             Draw_Arc(Radius_Arc, "Red", 1.0);
+            count_shapes++;
         }
         else if (shape_name == "Hexahedron")
         {
@@ -1965,7 +1591,9 @@ namespace {
             if (!ok) {
                 return;
             }
+            drawnShapes.insert(shape_name);
             Draw_Hexahedron(Radius_Hexahedron, "Red", 1.0);
+            count_shapes++;
         }
         else if (shape_name == "Line")
         {
@@ -1996,11 +1624,14 @@ namespace {
                 if (!ok) {
                     return;
                 }
+                drawnShapes.insert(shape_name);
                 Draw_Line(x1_line, y1_line, x2_line, y2_line, "Red", 1.0);
             }
             else {
+                drawnShapes.insert(shape_name);
                 DrawLine(window);
             }
+            count_shapes++;
         }
         else if (shape_name == "Polyline")
         {
@@ -2021,7 +1652,9 @@ namespace {
             if (!ok) {
                 return;
             }
+            drawnShapes.insert(shape_name);
             Draw_Regular_Polygon(Radius_Reg_Polygon, NO_POINTS, "Red", 1.0);
+            count_shapes++;
         }
         else if (shape_name == "Cylinder") {
             bool ok;
@@ -2033,7 +1666,9 @@ namespace {
             if (!ok) {
                 return;
             }
+            drawnShapes.insert(shape_name);
             Draw_Cylinder(Radius_Cylinder, Height_Cylinder, "Red", 1.0);
+            count_shapes++;
         }
         else if (shape_name == "Ellipse") {
             bool ok;
@@ -2045,7 +1680,9 @@ namespace {
             if (!ok) {
                 return;
             }
+            drawnShapes.insert(shape_name);
             Draw_Ellipse(MAJOR_AXIS, MINOR_AXIS, "Red", 1.0);
+            count_shapes++;
         }
         else if (shape_name == "Square") {
             bool ok;
@@ -2053,7 +1690,9 @@ namespace {
             if (!ok) {
                 return;
             }
+            drawnShapes.insert(shape_name);
             Draw_Square(Radius_Square, "Red", 1.0);
+            count_shapes++;
         }
         else if (shape_name == "Star") {
             bool ok;
@@ -2061,7 +1700,9 @@ namespace {
             if (!ok) {
                 return;
             }
+            drawnShapes.insert(shape_name);
             Draw_Star(Radius_Star, "Red", 1.0);
+            count_shapes++;
         }
         else if (shape_name == "Rosette") {
             bool ok;
@@ -2073,12 +1714,13 @@ namespace {
             if (!ok) {
                 return;
             }
+            drawnShapes.insert(shape_name);
             Draw_Rosette(num_vertices_ros, Radius_Rosette, "Red", 1.0);
         }
         window->Render();
     }
 
-    void delete_last_shape(vtkSmartPointer<vtkLineSource> temp_Source, vtkSmartPointer<vtkActor> temp_actor) {
+    void delete_shape(vtkSmartPointer<vtkLineSource> temp_Source, vtkSmartPointer<vtkActor> temp_actor) {
         // Set the color of the shape to match the background color
         temp_actor->GetProperty()->SetColor(renderer->GetBackground());
         // Remove points from the line source
@@ -2094,54 +1736,122 @@ namespace {
         while ((actor = actors->GetNextActor()) != nullptr) {
             renderer->RemoveActor(actor); // Remove the actor from the renderer
         }
+        while (!drawnShapes.empty()) {
+            drawnShapes.erase(drawnShapes.begin()); // Erase the shape name from the set
+        }
     }
 
     void Delete(QComboBox* comboBox, vtkGenericOpenGLRenderWindow* window) {
         QString shape_name = comboBox->currentText();
         QMessageBox messageBox;
         messageBox.setText("Choose which one you want to delete");
-        QAbstractButton* filledButton = messageBox.addButton(QMessageBox::tr("Last shape drawn"), QMessageBox::YesRole);
-        QAbstractButton* nonFilledButton = messageBox.addButton(QMessageBox::tr("All the Shapes"), QMessageBox::YesRole);
+        messageBox.addButton(QMessageBox::tr("Last shape drawn"), QMessageBox::YesRole);
+        messageBox.addButton(QMessageBox::tr("All the Shapes"), QMessageBox::YesRole);
+        messageBox.addButton(QMessageBox::tr("Specific shape"), QMessageBox::YesRole);
         messageBox.exec();
         QString buttonText = messageBox.clickedButton()->text();
         delete_mode = buttonText.toStdString();
         if (delete_mode == "Last shape drawn") {
             if (shape_name == "Circle") {
-                delete_last_shape(circle_Source, actor_circle);
+                delete_shape(circle_Source, actor_circle);
+                drawnShapes.erase("Circle");
             }
             else if (shape_name == "Line") {
-                delete_last_shape(lineSource, actor);
+                delete_shape(lineSource, actor);
+                drawnShapes.erase("Line");
             }
             else if (shape_name == "Ellipse") {
-                delete_last_shape(Ellipse_Source, actor_Ellipse);
+                delete_shape(Ellipse_Source, actor_Ellipse);
+                drawnShapes.erase("Ellipse");
             }
             else if (shape_name == "Arc") {
-                delete_last_shape(Arc_Source, actor_Arc);
+                delete_shape(Arc_Source, actor_Arc);
+                drawnShapes.erase("Arc");
             }
             else if (shape_name == "Sphere") {
-                delete_last_shape(Football_Source, actor_Football);
+                delete_shape(Football_Source, actor_Football);
+                drawnShapes.erase("Sphere");
             }
             else if (shape_name == "Hexahedron") {
-                delete_last_shape(Hexahedron_Source, actor_Hexahedron);
+                delete_shape(Hexahedron_Source, actor_Hexahedron);
+                drawnShapes.erase("Hexahedron");
             }
             else if (shape_name == "Regular Polygon") {
-                delete_last_shape(Regular_Polygon_Source, actor_Regular_Polygon);
+                delete_shape(Regular_Polygon_Source, actor_Regular_Polygon);
+                drawnShapes.erase("Regular Polygon");
             }
             else if (shape_name == "Cylinder") {
-                delete_last_shape(Cylinder_Source, actor_Cylinder);
+                delete_shape(Cylinder_Source, actor_Cylinder);
+                drawnShapes.erase("Cylinder");
             }
             else if (shape_name == "Square") {
-                delete_last_shape(Square_Source, actor_Square);
+                delete_shape(Square_Source, actor_Square);
+                drawnShapes.erase("Square");
             }
             else if (shape_name == "Star") {
-                delete_last_shape(Star_Source, actor_Star);
+                delete_shape(Star_Source, actor_Star);
+                drawnShapes.erase("Star");
             }
             else {
                 return;
             }
         }
-        else {
+        else if (delete_mode == "All the Shapes"){
             delete_all_shapes();
+        }
+        else if (delete_mode == "Specific shape") {
+            QMessageBox messageBox_edit;
+            QComboBox* comboBox = new QComboBox(); // Create a new QComboBox object
+            for (const auto& shapeName : drawnShapes) {
+                std::cout << shapeName.toStdString() << " ";
+                comboBox->addItem(shapeName);
+            }
+            messageBox_edit.layout()->addWidget(comboBox); // Add the QComboBox to the QMessageBox's layout
+            messageBox_edit.exec(); // Show the QMessageBox
+            QString selectedShape = comboBox->currentText(); // Get the currently selected shape from the QComboBox
+            if (selectedShape.toStdString() == "Circle") {
+                delete_shape(circle_Source, actor_circle);
+                drawnShapes.erase(selectedShape);
+            }
+            else if (selectedShape.toStdString() == "Line") {
+                delete_shape(lineSource, actor);
+                drawnShapes.erase(selectedShape);
+            }
+            else if (selectedShape.toStdString() == "Ellipse") {
+                delete_shape(Ellipse_Source, actor_Ellipse);
+                drawnShapes.erase(selectedShape);
+            }
+            else if (selectedShape.toStdString() == "Arc") {
+                delete_shape(Arc_Source, actor_Arc);
+                drawnShapes.erase(selectedShape);
+            }
+            else if (selectedShape.toStdString() == "Sphere") {
+                delete_shape(Football_Source, actor_Football);
+                drawnShapes.erase(selectedShape);
+            }
+            else if (selectedShape.toStdString() == "Hexahedron") {
+                delete_shape(Hexahedron_Source, actor_Hexahedron);
+                drawnShapes.erase(selectedShape);
+            }
+            else if (selectedShape.toStdString() == "Regular Polygon") {
+                delete_shape(Regular_Polygon_Source, actor_Regular_Polygon);
+                drawnShapes.erase(selectedShape);
+            }
+            else if (selectedShape.toStdString() == "Cylinder") {
+                delete_shape(Cylinder_Source, actor_Cylinder);
+                drawnShapes.erase(selectedShape);
+            }
+            else if (selectedShape.toStdString() == "Square") {
+                delete_shape(Square_Source, actor_Square);
+                drawnShapes.erase(selectedShape);
+            }
+            else if (selectedShape.toStdString() == "Star") {
+                delete_shape(Star_Source, actor_Star);
+                drawnShapes.erase(selectedShape);
+            }
+            else {
+                return;
+            }
         }
         window->Render(); // Render the window to reflect the changes
     }
@@ -2201,6 +1911,7 @@ namespace {
         }
         temp_source->Modified(); // Mark the source as modified
     }
+
     void Transform(QComboBox* comboBox_Transform, vtkGenericOpenGLRenderWindow* window, QComboBox* comboBox_Shapes) {
         QString transform_state = comboBox_Transform->currentText();
         QString shape_name = comboBox_Shapes->currentText();
@@ -2273,6 +1984,12 @@ namespace {
             else {
                 return;
             }
+        }
+        else if (transform_state == "Rotating") {
+
+        }
+        else if (transform_state == "Shearing") {
+
         }
         window->Render();
     }
