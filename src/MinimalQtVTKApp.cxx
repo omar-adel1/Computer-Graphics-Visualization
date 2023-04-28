@@ -110,6 +110,7 @@ double picked[3]; // Declares an array of 3 doubles called "picked"
 string mode_line;
 string delete_mode;
 string color_mode = "One Shape";
+string transform_mode;
 double x1_line;
 double y1_line;
 double x2_line;
@@ -129,6 +130,17 @@ bool Sphere_deleted = false;
 bool Square_deleted = false;
 bool Hexahedron_deleted = false;
 bool Star_deleted = false;
+bool line_deleted = false;
+string Color_Line;
+string Color_Circle;
+string Color_Ellipse;
+string Color_Star;
+string Color_Hexahedron;
+string Color_Square;
+string Color_Sphere;
+string Color_Cylinder;
+string Color_Arc;
+string Color_Regular_Polygon;
 
 namespace {
     void DrawLine(vtkRenderer* renderer, vtkPoints* points);
@@ -148,6 +160,8 @@ namespace {
     void Transform(QComboBox* comboBox_Transform, vtkGenericOpenGLRenderWindow* window, QComboBox* comboBox_Shapes);
 
     void Load(QComboBox* comboBox);
+
+    void Add_shape_list(QComboBox* shapeListComboBox);
 } // namespace
 
 namespace {
@@ -358,6 +372,22 @@ int main(int argc, char* argv[])
     transform_list->addItem("Shearing");
     transform_list->setCurrentIndex(0); // Set default value
     dockLayout->addWidget(transform_list);
+
+    // shape list dock
+    QDockWidget shapeListDock;
+    mainWindow.addDockWidget(Qt::RightDockWidgetArea, &shapeListDock);
+
+    QLabel shapeListDockTitle("Shapes List");
+    shapeListDockTitle.setMargin(20);
+    shapeListDock.setTitleBarWidget(&shapeListDockTitle);
+
+    QPointer<QVBoxLayout> shapeListLayout = new QVBoxLayout();
+    QWidget shapeListContainer;
+    shapeListContainer.setLayout(shapeListLayout);
+    shapeListDock.setWidget(&shapeListContainer);
+
+    QComboBox* shapeListComboBox = new QComboBox();
+    shapeListLayout->addWidget(shapeListComboBox);
 
     // render area
     QPointer<QVTKOpenGLNativeWidget> vtkRenderWidget =
@@ -902,7 +932,7 @@ namespace {
                         }
                         else {
                             if (circle_deleted == true) {
-                                outputFile_txt << "Circle\t\t" << Radius_Circle << "\t" << "NULL" << "\t\t" << "NULL" << "\t\t" << "NULL" << "\t" << "NULL" << "\t\t" << color_name << "\t" << thickness << "\t\t" << "Yes" << std::endl;
+                                outputFile_txt << "Circle\t\t" << Radius_Circle << "\t" << "NULL" << "\t\t" << "NULL" << "\t\t" << "NULL" << "\t" << "NULL" << "\t\t" << Color_Circle << "\t" << thickness << "\t\t" << "Yes" << std::endl;
                             }
                             else {
                                 outputFile_txt << "Circle\t\t" << Radius_Circle << "\t" << "NULL" << "\t\t" << "NULL" << "\t\t" << "NULL" << "\t" << "NULL" << "\t\t" << color_name << "\t" << thickness << "\t\t" << "No" << std::endl;
@@ -919,7 +949,7 @@ namespace {
                         }
                         else {
                             if (Star_deleted == true) {
-                                outputFile_txt << "Star\t\t" << Radius_Star << "\t" << "NULL" << "\t\t" << "NULL" << "\t\t" << "NULL" << "\t" << "NULL" << "\t\t" << color_name << "\t" << thickness << "\t\t" << "Yes" << std::endl;
+                                outputFile_txt << "Star\t\t" << Radius_Star << "\t" << "NULL" << "\t\t" << "NULL" << "\t\t" << "NULL" << "\t" << "NULL" << "\t\t" << Color_Star << "\t" << thickness << "\t\t" << "Yes" << std::endl;
                             }
                             else {
                                 outputFile_txt << "Star\t\t" << Radius_Star << "\t" << "NULL" << "\t\t" << "NULL" << "\t\t" << "NULL" << "\t" << "NULL" << "\t\t" << color_name << "\t" << thickness << "\t\t" << "Yes" << std::endl;
@@ -936,7 +966,7 @@ namespace {
                         }
                         else {
                             if (ellipse_deleted == true) {
-                                outputFile_txt << "Ellipse\t\t" << "NULL" << "\t" << MAJOR_AXIS << "\t\t" << MINOR_AXIS << "\t\t" << "NULL" << "\t" << "NULL" << "\t\t" << color_name << "\t" << thickness << "\t\t" << "Yes" << std::endl;
+                                outputFile_txt << "Ellipse\t\t" << "NULL" << "\t" << MAJOR_AXIS << "\t\t" << MINOR_AXIS << "\t\t" << "NULL" << "\t" << "NULL" << "\t\t" << Color_Ellipse << "\t" << thickness << "\t\t" << "Yes" << std::endl;
                             }
                             else {
                                 outputFile_txt << "Ellipse\t\t" << "NULL" << "\t" << MAJOR_AXIS << "\t\t" << MINOR_AXIS << "\t\t" << "NULL" << "\t" << "NULL" << "\t\t" << color_name << "\t" << thickness << "\t\t" << "No" << std::endl;
@@ -953,7 +983,7 @@ namespace {
                         }
                         else {
                             if (Cylinder_deleted == true) {
-                                outputFile_txt << "Cylinder\t" << Radius_Cylinder << "\t" << "NULL" << "\t\t" << "NULL" << "\t\t" << Height_Cylinder << "\t" << "NULL" << "\t\t" << color_name << "\t" << thickness << "\t\t" << "Yes" << std::endl;
+                                outputFile_txt << "Cylinder\t" << Radius_Cylinder << "\t" << "NULL" << "\t\t" << "NULL" << "\t\t" << Height_Cylinder << "\t" << "NULL" << "\t\t" << Color_Cylinder << "\t" << thickness << "\t\t" << "Yes" << std::endl;
                             }
                             else {
                                 outputFile_txt << "Cylinder\t" << Radius_Cylinder << "\t" << "NULL" << "\t\t" << "NULL" << "\t\t" << Height_Cylinder << "\t" << "NULL" << "\t\t" << color_name << "\t" << thickness << "\t\t" << "No" << std::endl;
@@ -970,7 +1000,7 @@ namespace {
                         }
                         else {
                             if (Regular_Polygon_deleted == true) {
-                                outputFile_txt << "Regular Polygon\t" << Radius_Reg_Polygon << "\t" << "NULL" << "\t\t" << "NULL" << "\t\t" << "NULL" << "\t" << NO_POINTS << "\t\t" << color_name << "\t" << thickness << "\t\t" << "Yes" << std::endl;
+                                outputFile_txt << "Regular Polygon\t" << Radius_Reg_Polygon << "\t" << "NULL" << "\t\t" << "NULL" << "\t\t" << "NULL" << "\t" << NO_POINTS << "\t\t" << Color_Regular_Polygon << "\t" << thickness << "\t\t" << "Yes" << std::endl;
                             }
                             else {
                                 outputFile_txt << "Regular Polygon\t" << Radius_Reg_Polygon << "\t" << "NULL" << "\t\t" << "NULL" << "\t\t" << "NULL" << "\t" << NO_POINTS << "\t\t" << color_name << "\t" << thickness << "\t\t" << "No" << std::endl;
@@ -987,7 +1017,7 @@ namespace {
                         }
                         else {
                             if (Square_deleted == true) {
-                                outputFile_txt << "Square\t\t" << Radius_Star << "\t" << "NULL" << "\t\t" << "NULL" << "\t\t" << "NULL" << "\t" << "NULL" << "\t\t" << color_name << "\t" << thickness << "\t\t" << "Yes" << std::endl;
+                                outputFile_txt << "Square\t\t" << Radius_Star << "\t" << "NULL" << "\t\t" << "NULL" << "\t\t" << "NULL" << "\t" << "NULL" << "\t\t" << Color_Square << "\t" << thickness << "\t\t" << "Yes" << std::endl;
                             }
                             else {
                                 outputFile_txt << "Square\t\t" << Radius_Star << "\t" << "NULL" << "\t\t" << "NULL" << "\t\t" << "NULL" << "\t" << "NULL" << "\t\t" << color_name << "\t" << thickness << "\t\t" << "No" << std::endl;
@@ -1004,7 +1034,7 @@ namespace {
                         }
                         else {
                             if (Hexahedron_deleted == true) {
-                                outputFile_txt << "Hexahedron\t" << Radius_Hexahedron << "\t" << "NULL" << "\t\t" << "NULL" << "\t\t" << "NULL" << "\t" << "NULL" << "\t\t" << color_name << "\t" << thickness << "\t\t" << "Yes" << std::endl;
+                                outputFile_txt << "Hexahedron\t" << Radius_Hexahedron << "\t" << "NULL" << "\t\t" << "NULL" << "\t\t" << "NULL" << "\t" << "NULL" << "\t\t" << Color_Hexahedron << "\t" << thickness << "\t\t" << "Yes" << std::endl;
                             }
                             else {
                                 outputFile_txt << "Hexahedron\t" << Radius_Hexahedron << "\t" << "NULL" << "\t\t" << "NULL" << "\t\t" << "NULL" << "\t" << "NULL" << "\t\t" << color_name << "\t" << thickness << "\t\t" << "No" << std::endl;
@@ -1038,7 +1068,7 @@ namespace {
                         }
                         else {
                             if (Sphere_deleted == true) {
-                                outputFile_txt << "Sphere\t\t" << Radius_Sphere << "\t" << "NULL" << "\t\t" << "NULL" << "\t\t" << "NULL" << "\t" << "NULL" << "\t\t" << color_name << "\t" << thickness << "\t\t" << "Yes" << std::endl;
+                                outputFile_txt << "Sphere\t\t" << Radius_Sphere << "\t" << "NULL" << "\t\t" << "NULL" << "\t\t" << "NULL" << "\t" << "NULL" << "\t\t" << Color_Sphere << "\t" << thickness << "\t\t" << "Yes" << std::endl;
                             }
                             else {
                                 outputFile_txt << "Sphere\t\t" << Radius_Sphere << "\t" << "NULL" << "\t\t" << "NULL" << "\t\t" << "NULL" << "\t" << "NULL" << "\t\t" << color_name << "\t" << thickness << "\t\t" << "No" << std::endl;
@@ -1064,7 +1094,7 @@ namespace {
                         }
                         else {
                             if (circle_deleted == true) {
-                                outputFile_csv << "Circle," << Radius_Circle << "," << "-" << "," << "-" << "," << "-" << "," << "-" << "," << color_name << "," << thickness << "," << "Yes" << std::endl;
+                                outputFile_csv << "Circle," << Radius_Circle << "," << "-" << "," << "-" << "," << "-" << "," << "-" << "," << Color_Circle << "," << thickness << "," << "Yes" << std::endl;
                             }
                             else {
                                 outputFile_csv << "Circle," << Radius_Circle << "," << "-" << "," << "-" << "," << "-" << "," << "-" << "," << color_name << "," << thickness << "," << "No" << std::endl;
@@ -1081,7 +1111,7 @@ namespace {
                         }
                         else {
                             if (Square_deleted == true) {
-                                outputFile_csv << "Square," << Radius_Square << "," << "-" << "," << "-" << "," << "-" << "," << "-" << "," << color_name << "," << thickness << "," << "Yes" << std::endl;
+                                outputFile_csv << "Square," << Radius_Square << "," << "-" << "," << "-" << "," << "-" << "," << "-" << "," << Color_Square << "," << thickness << "," << "Yes" << std::endl;
                             }
                             else {
                                 outputFile_csv << "Square," << Radius_Square << "," << "-" << "," << "-" << "," << "-" << "," << "-" << "," << color_name << "," << thickness << "," << "No" << std::endl;
@@ -1098,7 +1128,7 @@ namespace {
                         }
                         else {
                             if (Star_deleted == true) {
-                                outputFile_csv << "Star," << Radius_Star << "," << "-" << "," << "-" << "," << "-" << "," << "-" << "," << color_name << "," << thickness << "," << "Yes" << std::endl;
+                                outputFile_csv << "Star," << Radius_Star << "," << "-" << "," << "-" << "," << "-" << "," << "-" << "," << Color_Star << "," << thickness << "," << "Yes" << std::endl;
                             }
                             else {
                                 outputFile_csv << "Star," << Radius_Star << "," << "-" << "," << "-" << "," << "-" << "," << "-" << "," << color_name << "," << thickness << "," << "No" << std::endl;
@@ -1115,7 +1145,7 @@ namespace {
                         }
                         else {
                             if (ellipse_deleted == true) {
-                                outputFile_csv << "Ellipse," << "-" << "," << MAJOR_AXIS << "," << MINOR_AXIS << "," << "-" << "," << "-" << "," << color_name << "," << thickness << "," << "Yes" << std::endl;
+                                outputFile_csv << "Ellipse," << "-" << "," << MAJOR_AXIS << "," << MINOR_AXIS << "," << "-" << "," << "-" << "," << Color_Ellipse << "," << thickness << "," << "Yes" << std::endl;
                             }
                             else {
                                 outputFile_csv << "Ellipse," << "-" << "," << MAJOR_AXIS << "," << MINOR_AXIS << "," << "-" << "," << "-" << "," << color_name << "," << thickness << "," << "No" << std::endl;
@@ -1132,7 +1162,7 @@ namespace {
                         }
                         else {
                             if (Cylinder_deleted == true) {
-                                outputFile_csv << "Cylinder," << Radius_Cylinder << "," << "-" << "," << "-" << "," << Height_Cylinder << "," << "-" << "," << color_name << "," << thickness << "," << "Yes" << std::endl;
+                                outputFile_csv << "Cylinder," << Radius_Cylinder << "," << "-" << "," << "-" << "," << Height_Cylinder << "," << "-" << "," << Color_Cylinder << "," << thickness << "," << "Yes" << std::endl;
                             }
                             else {
                                 outputFile_csv << "Cylinder," << Radius_Cylinder << "," << "-" << "," << "-" << "," << Height_Cylinder << "," << "-" << "," << color_name << "," << thickness << "," << "No" << std::endl;
@@ -1149,7 +1179,7 @@ namespace {
                         }
                         else {
                             if (Regular_Polygon_deleted == true) {
-                                outputFile_csv << "Regular Polygon," << Radius_Reg_Polygon << "," << "-" << "," << "-" << "," << "-" << "," << NO_POINTS << "," << color_name << "," << thickness << "," << "Yes" << std::endl;
+                                outputFile_csv << "Regular Polygon," << Radius_Reg_Polygon << "," << "-" << "," << "-" << "," << "-" << "," << NO_POINTS << "," << Color_Regular_Polygon << "," << thickness << "," << "Yes" << std::endl;
                             }
                             else {
                                 outputFile_csv << "Regular Polygon," << Radius_Reg_Polygon << "," << "-" << "," << "-" << "," << "-" << "," << NO_POINTS << "," << color_name << "," << thickness << "," << "No" << std::endl;
@@ -1166,7 +1196,7 @@ namespace {
                         }
                         else {
                             if (Hexahedron_deleted == true) {
-                                outputFile_csv << "Hexahedron," << Radius_Hexahedron << "," << "-" << "," << "-" << "," << "-" << "," << "-" << "," << color_name << "," << thickness << "," << "Yes" << std::endl;
+                                outputFile_csv << "Hexahedron," << Radius_Hexahedron << "," << "-" << "," << "-" << "," << "-" << "," << "-" << "," << Color_Hexahedron << "," << thickness << "," << "Yes" << std::endl;
                             }
                             else {
                                 outputFile_csv << "Hexahedron," << Radius_Hexahedron << "," << "-" << "," << "-" << "," << "-" << "," << "-" << "," << color_name << "," << thickness << "," << "No" << std::endl;
@@ -1183,7 +1213,7 @@ namespace {
                         }
                         else {
                             if (Arc_deleted == true) {
-                                outputFile_csv << "Arc," << Radius_Arc << "," << "-" << "," << "-" << "," << "-" << "," << "-" << "," << color_name << "," << thickness << "," << "Yes" << std::endl;
+                                outputFile_csv << "Arc," << Radius_Arc << "," << "-" << "," << "-" << "," << "-" << "," << "-" << "," << Color_Arc << "," << thickness << "," << "Yes" << std::endl;
                             }
                             else {
                                 outputFile_csv << "Arc," << Radius_Arc << "," << "-" << "," << "-" << "," << "-" << "," << "-" << "," << color_name << "," << thickness << "," << "No" << std::endl;
@@ -1200,7 +1230,7 @@ namespace {
                         }
                         else {
                             if (Sphere_deleted == true) {
-                                outputFile_csv << "Sphere," << Radius_Sphere << "," << "-" << "," << "-" << "," << "-" << "," << "-" << "," << color_name << "," << thickness << "," << "Yes" << std::endl;
+                                outputFile_csv << "Sphere," << Radius_Sphere << "," << "-" << "," << "-" << "," << "-" << "," << "-" << "," << Color_Sphere << "," << thickness << "," << "Yes" << std::endl;
                             }
                             else {
                                 outputFile_csv << "Sphere," << Radius_Sphere << "," << "-" << "," << "-" << "," << "-" << "," << "-" << "," << color_name << "," << thickness << "," << "No" << std::endl;
@@ -1250,7 +1280,7 @@ namespace {
 
         if (count_shapes > 1) {
             QMessageBox messageBox;
-            messageBox.setText("Choose which mode you want to color");
+            messageBox.setText("Choose which shape you want to color");
             messageBox.addButton(QMessageBox::tr("Last shape drawn"), QMessageBox::YesRole);
             messageBox.addButton(QMessageBox::tr("All the Shapes"), QMessageBox::YesRole);
             messageBox.addButton(QMessageBox::tr("Specific shape"), QMessageBox::YesRole);
@@ -1385,10 +1415,6 @@ namespace {
             }
         }
         window->Render();
-    }
-
-    bool stringToBool(const std::string& str) {
-        return str == "Yes" || str == "No";
     }
 
     void drawnshapes_and_all_count(string shape_name) {
@@ -1712,7 +1738,7 @@ namespace {
 
     void Change_Shapes(QComboBox* comboBox, vtkGenericOpenGLRenderWindow* window)
     {
-        QString shape_name = comboBox->currentText();
+        std::string shape_name = comboBox->currentText().toStdString();
         if (shape_name == "Circle")
         {
             bool ok;
@@ -1720,10 +1746,8 @@ namespace {
             if (!ok) {
                 return;
             }
-            drawnShapes.insert(shape_name);
-            drawnShapes_all.insert(shape_name);
             Draw_circle(Radius_Circle, "Red", 1.0);
-            count_shapes++;
+            drawnshapes_and_all_count(shape_name);
         }
         else if (shape_name == "Sphere") {
             bool ok;
@@ -1731,10 +1755,8 @@ namespace {
             if (!ok) {
                 return;
             }
-            drawnShapes.insert(shape_name);
-            drawnShapes_all.insert(shape_name);
             Draw_Football(Radius_Sphere, "Red", 1.0);
-            count_shapes++;
+            drawnshapes_and_all_count(shape_name);
         }
         else if (shape_name == "Arc")
         {
@@ -1743,10 +1765,8 @@ namespace {
             if (!ok) {
                 return;
             }
-            drawnShapes.insert(shape_name);
-            drawnShapes_all.insert(shape_name);
             Draw_Arc(Radius_Arc, "Red", 1.0);
-            count_shapes++;
+            drawnshapes_and_all_count(shape_name);
         }
         else if (shape_name == "Hexahedron")
         {
@@ -1755,10 +1775,8 @@ namespace {
             if (!ok) {
                 return;
             }
-            drawnShapes.insert(shape_name);
-            drawnShapes_all.insert(shape_name);
             Draw_Hexahedron(Radius_Hexahedron, "Red", 1.0);
-            count_shapes++;
+            drawnshapes_and_all_count(shape_name);
         }
         else if (shape_name == "Line")
         {
@@ -1789,24 +1807,21 @@ namespace {
                 if (!ok) {
                     return;
                 }
-                drawnShapes_all.insert(shape_name);
-                drawnShapes.insert(shape_name);
                 Draw_Line(x1_line, y1_line, x2_line, y2_line, "Red", 1.0);
             }
             else {
-                drawnShapes_all.insert(shape_name);
-                drawnShapes.insert(shape_name);
                 DrawLine(window);
             }
-            count_shapes++;
+            drawnshapes_and_all_count(shape_name);
         }
         else if (shape_name == "Polyline")
         {
-
+            drawnshapes_and_all_count(shape_name);
         }
         else if (shape_name == "Polygon") {
             is_Polygon = true;
             Draw_Polygon();
+            drawnshapes_and_all_count(shape_name);
         }
         else if (shape_name == "Regular Polygon")
         {
@@ -1819,10 +1834,8 @@ namespace {
             if (!ok) {
                 return;
             }
-            drawnShapes.insert(shape_name);
-            drawnShapes_all.insert(shape_name);
             Draw_Regular_Polygon(Radius_Reg_Polygon, NO_POINTS, "Red", 1.0);
-            count_shapes++;
+            drawnshapes_and_all_count(shape_name);
         }
         else if (shape_name == "Cylinder") {
             bool ok;
@@ -1834,10 +1847,8 @@ namespace {
             if (!ok) {
                 return;
             }
-            drawnShapes.insert(shape_name);
-            drawnShapes_all.insert(shape_name);
             Draw_Cylinder(Radius_Cylinder, Height_Cylinder, "Red", 1.0);
-            count_shapes++;
+            drawnshapes_and_all_count(shape_name);
         }
         else if (shape_name == "Ellipse") {
             bool ok;
@@ -1849,10 +1860,8 @@ namespace {
             if (!ok) {
                 return;
             }
-            drawnShapes.insert(shape_name);
-            drawnShapes_all.insert(shape_name);
             Draw_Ellipse(MAJOR_AXIS, MINOR_AXIS, "Red", 1.0);
-            count_shapes++;
+            drawnshapes_and_all_count(shape_name);
         }
         else if (shape_name == "Square") {
             bool ok;
@@ -1860,10 +1869,8 @@ namespace {
             if (!ok) {
                 return;
             }
-            drawnShapes.insert(shape_name);
-            drawnShapes_all.insert(shape_name);
             Draw_Square(Radius_Square, "Red", 1.0);
-            count_shapes++;
+            drawnshapes_and_all_count(shape_name);
         }
         else if (shape_name == "Star") {
             bool ok;
@@ -1871,10 +1878,8 @@ namespace {
             if (!ok) {
                 return;
             }
-            drawnShapes.insert(shape_name);
-            drawnShapes_all.insert(shape_name);
             Draw_Star(Radius_Star, "Red", 1.0);
-            count_shapes++;
+            drawnshapes_and_all_count(shape_name);
         }
         else if (shape_name == "Rosette") {
             bool ok;
@@ -1886,9 +1891,8 @@ namespace {
             if (!ok) {
                 return;
             }
-            drawnShapes.insert(shape_name);
-            drawnShapes_all.insert(shape_name);
             Draw_Rosette(num_vertices_ros, Radius_Rosette, "Red", 1.0);
+            drawnshapes_and_all_count(shape_name);
         }
         window->Render();
     }
@@ -1932,50 +1936,71 @@ namespace {
             delete_mode = buttonText.toStdString();
             if (delete_mode == "Last shape drawn") {
                 if (shape_name == "Circle") {
+                    double* color = actor_circle->GetProperty()->GetColor();
+                    Color_Circle = specify_color(color);
                     delete_shape(circle_Source, actor_circle);
                     drawnShapes.erase("Circle");
                     circle_deleted = true;
                 }
                 else if (shape_name == "Line") {
+                    double* color = actor->GetProperty()->GetColor();
+                    Color_Line = specify_color(color);
                     delete_shape(lineSource, actor);
                     drawnShapes.erase("Line");
+                    line_deleted = true;
                 }
                 else if (shape_name == "Ellipse") {
+                    double* color = actor_Ellipse->GetProperty()->GetColor();
+                    Color_Ellipse = specify_color(color);
                     delete_shape(Ellipse_Source, actor_Ellipse);
                     drawnShapes.erase("Ellipse");
                     ellipse_deleted = true;
                 }
                 else if (shape_name == "Arc") {
+                    double* color = actor_Arc->GetProperty()->GetColor();
+                    Color_Arc = specify_color(color);
                     delete_shape(Arc_Source, actor_Arc);
                     drawnShapes.erase("Arc");
                     Arc_deleted = true;
                 }
                 else if (shape_name == "Sphere") {
+                    double* color = actor_Football->GetProperty()->GetColor();
+                    Color_Sphere = specify_color(color);
                     delete_shape(Football_Source, actor_Football);
                     drawnShapes.erase("Sphere");
                     Sphere_deleted = true;
                 }
                 else if (shape_name == "Hexahedron") {
+                    double* color = actor_Hexahedron->GetProperty()->GetColor();
+                    Color_Hexahedron = specify_color(color);
                     delete_shape(Hexahedron_Source, actor_Hexahedron);
                     drawnShapes.erase("Hexahedron");
                     Hexahedron_deleted = true;
                 }
                 else if (shape_name == "Regular Polygon") {
+                    double* color = actor_Regular_Polygon->GetProperty()->GetColor();
+                    Color_Regular_Polygon = specify_color(color);
                     delete_shape(Regular_Polygon_Source, actor_Regular_Polygon);
                     drawnShapes.erase("Regular Polygon");
                     Regular_Polygon_deleted = true;
                 }
                 else if (shape_name == "Cylinder") {
+                    double* color = actor_Cylinder->GetProperty()->GetColor();
+                    Color_Cylinder = specify_color(color);
                     delete_shape(Cylinder_Source, actor_Cylinder);
                     drawnShapes.erase("Cylinder");
                     Cylinder_deleted = true;
                 }
                 else if (shape_name == "Square") {
+                    double* color = actor_Square->GetProperty()->GetColor();
+                    Color_Square = specify_color(color);
                     delete_shape(Square_Source, actor_Square);
                     drawnShapes.erase("Square");
                     Square_deleted = true;
                 }
                 else if (shape_name == "Star") {
+                    double* color = actor_Star->GetProperty()->GetColor();
+                    Color_Star = specify_color(color);
                     delete_shape(Star_Source, actor_Star);
                     drawnShapes.erase("Star");
                     Star_deleted = true;
@@ -2000,50 +2025,71 @@ namespace {
                 messageBox_edit.exec(); // Show the QMessageBox
                 QString selectedShape = comboBox->currentText(); // Get the currently selected shape from the QComboBox
                 if (selectedShape.toStdString() == "Circle") {
+                    double* color = actor_circle->GetProperty()->GetColor();
+                    Color_Circle = specify_color(color);
                     delete_shape(circle_Source, actor_circle);
                     drawnShapes.erase(selectedShape);
                     circle_deleted = true;
                 }
                 else if (selectedShape.toStdString() == "Line") {
+                    double* color = actor->GetProperty()->GetColor();
+                    Color_Line = specify_color(color);
                     delete_shape(lineSource, actor);
                     drawnShapes.erase(selectedShape);
+                    line_deleted = true;
                 }
                 else if (selectedShape.toStdString() == "Ellipse") {
+                    double* color = actor_Ellipse->GetProperty()->GetColor();
+                    Color_Ellipse = specify_color(color);
                     delete_shape(Ellipse_Source, actor_Ellipse);
                     drawnShapes.erase(selectedShape);
                     ellipse_deleted = true;
                 }
                 else if (selectedShape.toStdString() == "Arc") {
+                    double* color = actor_Arc->GetProperty()->GetColor();
+                    Color_Arc = specify_color(color);
                     delete_shape(Arc_Source, actor_Arc);
                     drawnShapes.erase(selectedShape);
                     Arc_deleted = true;
                 }
                 else if (selectedShape.toStdString() == "Sphere") {
+                    double* color = actor_Football->GetProperty()->GetColor();
+                    Color_Sphere = specify_color(color);
                     delete_shape(Football_Source, actor_Football);
                     drawnShapes.erase(selectedShape);
                     Sphere_deleted = true;
                 }
                 else if (selectedShape.toStdString() == "Hexahedron") {
+                    double* color = actor_Hexahedron->GetProperty()->GetColor();
+                    Color_Hexahedron = specify_color(color);
                     delete_shape(Hexahedron_Source, actor_Hexahedron);
                     drawnShapes.erase(selectedShape);
                     Hexahedron_deleted = true;
                 }
                 else if (selectedShape.toStdString() == "Regular Polygon") {
+                    double* color = actor_Regular_Polygon->GetProperty()->GetColor();
+                    Color_Regular_Polygon = specify_color(color);
                     delete_shape(Regular_Polygon_Source, actor_Regular_Polygon);
                     drawnShapes.erase(selectedShape);
                     Regular_Polygon_deleted = true;
                 }
                 else if (selectedShape.toStdString() == "Cylinder") {
+                    double* color = actor_Cylinder->GetProperty()->GetColor();
+                    Color_Cylinder = specify_color(color);
                     delete_shape(Cylinder_Source, actor_Cylinder);
                     drawnShapes.erase(selectedShape);
                     Cylinder_deleted = true;
                 }
                 else if (selectedShape.toStdString() == "Square") {
+                    double* color = actor_Square->GetProperty()->GetColor();
+                    Color_Square = specify_color(color);
                     delete_shape(Square_Source, actor_Square);
                     drawnShapes.erase(selectedShape);
                     Square_deleted = true;
                 }
                 else if (selectedShape.toStdString() == "Star") {
+                    double* color = actor_Star->GetProperty()->GetColor();
+                    Color_Star = specify_color(color);
                     delete_shape(Star_Source, actor_Star);
                     drawnShapes.erase(selectedShape);
                     Star_deleted = true;
@@ -2112,9 +2158,65 @@ namespace {
         temp_source->Modified(); // Mark the source as modified
     }
 
-    void Transform(QComboBox* comboBox_Transform, vtkGenericOpenGLRenderWindow* window, QComboBox* comboBox_Shapes) {
-        QString transform_state = comboBox_Transform->currentText();
-        QString shape_name = comboBox_Shapes->currentText();
+    void Rotation(vtkSmartPointer<vtkLineSource> temp_source, vtkDataSetMapper* temp_mapper) {
+        bool ok;
+        double angle = QInputDialog::getDouble(nullptr, "Enter the Angle", "Enter the Angle of Rotation:", 0.0, -100.0, 360, 2, &ok);
+        if (!ok) {
+            return;
+        }
+        angle *= vtkMath::Pi() / 180.0; // Convert the angle to radians
+        vtkPoints* points = temp_source->GetPoints();
+
+        // Create a new vtkPoints object to store the translated points
+        vtkSmartPointer<vtkPoints> translatedPoints = vtkSmartPointer<vtkPoints>::New();
+
+        // Loop through each point and apply translation
+        for (vtkIdType i = 0; i < points->GetNumberOfPoints(); i++) {
+            double originalPoint[3];
+            points->GetPoint(i, originalPoint);
+            double Px = originalPoint[0];
+            double Py = originalPoint[1];
+            double translatedPoint[3] = { Px * cos(angle) - Py * sin(angle),  Px * sin(angle) + Py * cos(angle), 1.0 };
+            translatedPoints->InsertNextPoint(translatedPoint);
+        }
+
+        // Set the translated points to the circle shape's vtkPoints object
+        temp_source->SetPoints(translatedPoints);
+
+        // Update the mapper with the modified points
+        temp_mapper->Update();
+    }
+
+    void Shearing(vtkLineSource* temp_source) {
+        bool ok;
+        double h = QInputDialog::getDouble(nullptr, "Enter the shearing factor", "Enter the factor of Shearing:", 0.0, -100.0, 360, 2, &ok);
+        if (!ok) {
+            return;
+        }  // Specify the desired shearing factor
+        // Get the current coordinates of the points in the source
+        vtkSmartPointer<vtkPoints> points = temp_source->GetPoints();
+
+        // Apply the shearing transformation to each point
+        for (vtkIdType i = 0; i < points->GetNumberOfPoints(); ++i) {
+            double point[3];
+            points->GetPoint(i, point);
+            double Px = point[0];
+            double Py = point[1];
+
+            // Apply the shearing equation
+            double Qx = Px + h * Py;
+            double Qy = Py;
+
+            // Set the new coordinates for the transformed point
+            points->SetPoint(i, Qx, Qy, point[2]);
+        }
+
+        // Update the source to reflect the transformed points
+        temp_source->SetPoints(points);
+        temp_source->Modified(); // Mark the source as modified
+    }
+
+    void transform_modes(QString transform_state, QString shape_name) {
         if (transform_state == "Translation") {
             if (shape_name == "Circle") {
                 Translation(circle_Source, mapper_circle);
@@ -2186,11 +2288,137 @@ namespace {
             }
         }
         else if (transform_state == "Rotating") {
-
+            if (shape_name == "Circle") {
+                Rotation(circle_Source, mapper_circle);
+            }
+            else if (shape_name == "Line") {
+                Rotation(lineSource, mapper);
+            }
+            else if (shape_name == "Ellipse") {
+                Rotation(Ellipse_Source, mapper_Ellipse);
+            }
+            else if (shape_name == "Arc") {
+                Rotation(Arc_Source, mapper_Arc);
+            }
+            else if (shape_name == "Sphere") {
+                Rotation(Football_Source, mapper_Football);
+            }
+            else if (shape_name == "Hexahedron") {
+                Rotation(Hexahedron_Source, mapper_Hexahedron);
+            }
+            else if (shape_name == "Regular Polygon") {
+                Rotation(Regular_Polygon_Source, mapper_Regular_Polygon);
+            }
+            else if (shape_name == "Cylinder") {
+                Rotation(Cylinder_Source, mapper_Cylinder);
+            }
+            else if (shape_name == "Square") {
+                Rotation(Square_Source, mapper_Square);
+            }
+            else if (shape_name == "Star") {
+                Rotation(Star_Source, mapper_Star);
+            }
+            else {
+                return;
+            }
         }
         else if (transform_state == "Shearing") {
+            if (shape_name == "Circle") {
+                Shearing(circle_Source);
+            }
+            else if (shape_name == "Line") {
+                Shearing(lineSource);
+            }
+            else if (shape_name == "Ellipse") {
+                Shearing(Ellipse_Source);
+            }
+            else if (shape_name == "Arc") {
+                Shearing(Arc_Source);
+            }
+            else if (shape_name == "Sphere") {
+                Shearing(Football_Source);
+            }
+            else if (shape_name == "Hexahedron") {
+                Shearing(Hexahedron_Source);
+            }
+            else if (shape_name == "Regular Polygon") {
+                Shearing(Regular_Polygon_Source);
+            }
+            else if (shape_name == "Cylinder") {
+                Shearing(Cylinder_Source);
+            }
+            else if (shape_name == "Square") {
+                Shearing(Square_Source);
+            }
+            else if (shape_name == "Star") {
+                Shearing(Star_Source);
+            }
+            else {
+                return;
+            }
+        }
+    }
 
+    //void specify_source_and_mapper(vtkSmartPointer<vtkActor> tempactor) {
+    //    if (tempactor == actor) {
+    //        Translation(lineSource, mapper);
+    //    }
+    //    else if (tempactor == actor_circle){
+    //        Translation(circle_Source, mapper_circle);
+    //    }
+    //}
+
+    void Transform(QComboBox* comboBox_Transform, vtkGenericOpenGLRenderWindow* window, QComboBox* comboBox_Shapes) {
+        QString transform_state = comboBox_Transform->currentText();
+        QString shape_name = comboBox_Shapes->currentText();
+        if (count_shapes > 1) {
+            QMessageBox messageBox;
+            messageBox.setText("Choose which shape you want to apply transformation");
+            messageBox.addButton(QMessageBox::tr("Last shape drawn"), QMessageBox::YesRole);
+            messageBox.addButton(QMessageBox::tr("All the Shapes"), QMessageBox::YesRole);
+            messageBox.addButton(QMessageBox::tr("Specific shape"), QMessageBox::YesRole);
+            messageBox.exec();
+            QString buttonText = messageBox.clickedButton()->text();
+            transform_mode = buttonText.toStdString();
+            if (transform_mode == "Last shape drawn") {
+                transform_modes(transform_state, shape_name);
+            }
+            else if (transform_mode == "All the Shapes") {
+                //if (transform_state == "Translation") {
+
+                //    vtkActorCollection* actors = renderer->GetActors(); // Get the collection of actors in the renderer
+                //    actors->InitTraversal(); // Initialize the actors traversal
+                //    vtkActor* actor_all = nullptr;
+                //    while ((actor_all = actors->GetNextActor()) != nullptr) {
+                //        specify_source_and_mapper(actor_all);
+                //    }
+                //}
+            }
+            else if (transform_mode == "Specific shape") {
+                QMessageBox messageBox_edit;
+                QComboBox* comboBox = new QComboBox(); // Create a new QComboBox object
+                for (const auto& shapeName : drawnShapes) {
+                    std::cout << shapeName.toStdString() << " ";
+                    comboBox->addItem(shapeName);
+                }
+                messageBox_edit.layout()->addWidget(comboBox); // Add the QComboBox to the QMessageBox's layout
+                messageBox_edit.exec(); // Show the QMessageBox
+                QString selectedShape = comboBox->currentText(); // Get the currently selected shape from the QComboBox
+                transform_modes(transform_state, selectedShape);
+            }
+        }
+        else {
+            transform_modes(transform_state, shape_name);
         }
         window->Render();
+    }
+
+    void Add_shape_list(QComboBox* shapeListComboBox)
+    {
+        // Add the shapes to the combo box
+        for (const auto& shapeName : drawnShapes) {
+            std::cout << shapeName.toStdString() << " ";
+            shapeListComboBox->addItem(shapeName);
+        }
     }
 } // namespace
