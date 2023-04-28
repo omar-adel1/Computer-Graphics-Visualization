@@ -24,6 +24,7 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 #include <set>
+#include< QCheckBox.h>
 
 #include <cmath>
 #include <cstdlib>
@@ -46,6 +47,7 @@
 #include <vtkTextRepresentation.h>
 #include <QSpinBox>
 #include <QTextEdit>
+#include <QListWidget>
 using namespace std;
 
 vtkNew<vtkRenderer> renderer;
@@ -90,6 +92,18 @@ vtkSmartPointer<vtkLineSource> Hexahedron_Source = vtkSmartPointer<vtkLineSource
 vtkSmartPointer<vtkActor> actor_Star = vtkSmartPointer<vtkActor>::New();
 vtkDataSetMapper* mapper_Star = vtkDataSetMapper::New();
 vtkSmartPointer<vtkLineSource> Star_Source = vtkSmartPointer<vtkLineSource>::New();
+// Actor, Source, Mapper    FOR Solving interactor
+vtkSmartPointer<vtkActor> Delactor = vtkSmartPointer<vtkActor>::New();
+vtkDataSetMapper* Delmapper = vtkDataSetMapper::New();
+vtkSmartPointer<vtkLineSource> DellineSource = vtkSmartPointer<vtkLineSource>::New();
+// Actor, Source, Mapper    FOR  Polygon
+vtkSmartPointer<vtkActor> Polygon_actor = vtkSmartPointer<vtkActor>::New();
+vtkDataSetMapper* Polygon_mapper = vtkDataSetMapper::New();
+vtkSmartPointer<vtkLineSource> Polygon_Source = vtkSmartPointer<vtkLineSource>::New();
+// Actor, Source, Mapper    FOR  PolyLine
+vtkSmartPointer<vtkActor> PolyLine_actor = vtkSmartPointer<vtkActor>::New();
+vtkDataSetMapper* PolyLine_mapper = vtkDataSetMapper::New();
+vtkSmartPointer<vtkLineSource> PolyLine_Source = vtkSmartPointer<vtkLineSource>::New();
 /*________________________________Global Initialization________________________________________*/
 double Radius_Circle;
 double Radius_Sphere;
@@ -111,6 +125,7 @@ string mode_line;
 string delete_mode;
 string color_mode = "One Shape";
 string transform_mode;
+string thickness_mode;
 double x1_line;
 double y1_line;
 double x2_line;
@@ -143,15 +158,19 @@ string Color_Arc;
 string Color_Regular_Polygon;
 
 namespace {
-    void DrawLine(vtkRenderer* renderer, vtkPoints* points);
+    void DrawPolyLine(vtkSmartPointer<vtkPoints> points);
 
-    void DrawPoly_Line(vtkRenderer* renderer, vtkPoints* points);
+    void DeleteLine_Poly(vtkSmartPointer<vtkPoints> points);
 
-    void Change_Shapes(QComboBox* comboBox, vtkGenericOpenGLRenderWindow* window);
+    void DrawPolygon(vtkSmartPointer<vtkPoints> points);
+
+    void DrawLine(vtkSmartPointer<vtkPoints> points);
+
+    void Change_Shapes(QComboBox* comboBox, vtkGenericOpenGLRenderWindow* window, QListWidget& shapeListWidget);
 
     void ChangeColor_Button(QComboBox* comboBox_Color, vtkGenericOpenGLRenderWindow* window, QComboBox* comboBox_Shapes);
 
-    void UpdateLineThickness(int thickness, vtkGenericOpenGLRenderWindow* window, QComboBox* comboBox);
+    void UpdateThickness(int thickness, vtkGenericOpenGLRenderWindow* window, QComboBox* comboBox);
 
     void Save();
 
@@ -165,117 +184,105 @@ namespace {
 } // namespace
 
 namespace {
-    class MouseInteractorStylePP : public vtkInteractorStyleTrackballCamera
+    class MouseInteractorStyleDrawLine : public vtkInteractorStyleTrackballCamera
     {
-    private:
-        double mousePos[2] = { 0.0, 0.0 };
     public:
-        static MouseInteractorStylePP* New();
-        int check = 0;
-        vtkTypeMacro(MouseInteractorStylePP, vtkInteractorStyleTrackballCamera);
-        void setlinesource(vtkSmartPointer<vtkLineSource> lSource) {
-            lineSource = lSource;
-        }
-        void setlineactor(vtkSmartPointer<vtkActor> lactor) {
-            actor = lactor;
-        }
-        vtkSmartPointer<vtkLineSource> getlineSource()
+        static MouseInteractorStyleDrawLine* New();
+        vtkTypeMacro(MouseInteractorStyleDrawLine, vtkInteractorStyleTrackballCamera);
+
+        MouseInteractorStyleDrawLine()
         {
-            return lineSource;
+            this->Points = vtkSmartPointer<vtkPoints>::New();
+            this->Picker = vtkSmartPointer<vtkPointPicker>::New();
+            this->flag = true;
+            this->numofpoints = NULL;
         }
-        vtkSmartPointer<vtkActor> getLineactor() {
-            return actor;
-        }
-        void SetMousePos(double x, double y)
-        {
-            mousePos[0] = x;
-            mousePos[1] = y;
-        }
-        double* GetMousePos()
-        {
-            return mousePos;
-        }
+
         virtual void OnLeftButtonDown() override
         {
-            // Get the pixel coordinates of the mouse click event
-            double x = this->Interactor->GetEventPosition()[0];
-            double y = this->Interactor->GetEventPosition()[1];
 
-            // Set the mouse coordinates
-            this->SetMousePos(x, y);
+            this->Picker->Pick(this->Interactor->GetEventPosition()[0], this->Interactor->GetEventPosition()[1], 0, this->Renderer);
+            double point[3];
+            this->Picker->GetPickPosition(point);
+            std::cout << "Point: " << point[0] << ", " << point[1] << ", " << point[2] << std::endl;
+            this->Points->InsertNextPoint(point);
 
-            // Use the vtkPicker to pick an object in the scene at the location of the mouse click event
-            this->Interactor->GetPicker()->Pick(
-                x, // x-coordinate of the mouse click event
-                y, // y-coordinate of the mouse click event
-                0, // always zero (z-coordinate of the mouse click event)
-                this->Interactor->GetRenderWindow()
-                ->GetRenderers()
-                ->GetFirstRenderer() // pick from the first renderer in the render window
-            );
+            // Draw the line
+            if (this->Points->GetNumberOfPoints() > 2 && this->flag == true)
+            {
+                /* this->Interactor->GetRenderWindow()
+                     ->GetRenderers()
+                     ->GetFirstRenderer()
+                     ->RemoveAllViewProps();*/
 
-            // Get the 3D position of the pick location
-            this->Interactor->GetPicker()->GetPickPosition(picked);
-
-            // Print the 3D coordinates of the picked location to the console
-            std::cout << "Picked value: " << picked[0] << " " << picked[1] << " "
-                << picked[2] << std::endl;
-
-            // Increment the check variable to keep track of the number of clicks
-            check++;
-
-            // If this is the first click, set the first point and draw a temporary line
-            if (Line_Poly == true) {
-                if (check == 1) {
-                    this->SetFirstPoint();
-                    this->SetSecondPoint();
-                }
-                // If this is the second click, set the second point, draw the final line, and reset the check variable
-                else if (check == 2) {
-                    this->SetSecondPoint();
-                    check = 0;
-                }
-                this->DrawLine();
-
+                DrawLine(this->Points);
             }
-            else {
-                if (check == 1) {
-                    this->SetFirstPoint();
-                    this->DrawLine();
-                }
-                // If this is the second click, set the second point, draw the final line, and reset the check variable
-                else if (check == 2) {
-                    this->SetSecondPoint();
-                    check = 0;
-                    this->DrawLine();
-                }
+            else if (this->Points->GetNumberOfPoints() > 2 && this->Polyflag == true /*&& this->Points->GetNumberOfPoints() <= 3*/) {
+
+                DrawPolyLine(this->Points);
+                //DrawLine(renderer, this->Points, this->Color);
+               // Points->InsertNextPoint(point); // insert the first point again
+               // DrawLine(renderer, this->Points, this->Color);
             }
-            // Forward the left button down event to the parent class vtkInteractorStyleTrackballCamera
+            else if (this->Points->GetNumberOfPoints() > 2 && this->Polygonflag == true && this->Points->GetNumberOfPoints() <= 3) {
+                DrawPolygon(this->Points);
+            }
+            else if (this->flag == false && this->Polyflag == false && this->Polygonflag == false) {
+                /*if(Actor && Mapper && LineSource)
+                    DeleteLine();*/
+                    //DrawPolyLine(this->Points,this->Polyflag);
+                    //DrawLine(this->Points, this->LineSource, this->Mapper, this->Actor, this->flag);
+                DeleteLine_Poly(this->Points);
+            }
+
+
+            // Forward events
             vtkInteractorStyleTrackballCamera::OnLeftButtonDown();
         }
-        virtual void SetFirstPoint() {
-            lineSource->SetPoint1(picked[0], picked[1], picked[2]); // Set the first endpoint of the line
-            return;
+
+        void DeleteLine() {
+            LineSource->Delete();
+            Mapper->Delete();
+            Actor->Delete();
         }
-        virtual void SetSecondPoint() {
-            lineSource->SetPoint2(picked[0], picked[1], picked[2]); // Set the second endpoint of the line
-            return;
-        }
-        virtual void DrawLine()
+
+        void SetRenderer(vtkRenderer* renderer)
         {
-            // Update the points of the line source
-            lineSource->Update();
-
-            // Render the updated line in the renderer
-            this->Interactor->GetRenderWindow()
-                ->GetRenderers()
-                ->GetFirstRenderer()
-                ->Render();
+            this->Renderer = renderer;
+        }
+        void setFlag(bool f) {
+            this->flag = f;
+        }
+        bool getFLag() {
+            return flag;
+        }
+        void setPolyFlag(bool f) {
+            Polyflag = f;
+        }
+        void setPolygonFlag(bool f) {
+            Polygonflag = f;
+        }
+        void SetPoints(vtkSmartPointer<vtkPoints> Points) {
+            this->Points = Points;
+        }
+        vtkSmartPointer<vtkPoints> GetPoints() {
+            return Points;
         }
 
-
+    private:
+        vtkSmartPointer<vtkPoints> Points;
+        // vtkSmartPointer<vtkNamedColors> Color;
+        vtkRenderer* Renderer;
+        vtkSmartPointer<vtkPointPicker> Picker;
+        vtkSmartPointer<vtkActor> Actor = vtkSmartPointer<vtkActor>::New();
+        vtkDataSetMapper* Mapper = vtkDataSetMapper::New();
+        vtkSmartPointer<vtkLineSource> LineSource = vtkSmartPointer<vtkLineSource>::New();
+        bool flag;
+        bool Polyflag;
+        bool Polygonflag;
+        int numofpoints;
     };
-    vtkStandardNewMacro(MouseInteractorStylePP);
+    vtkStandardNewMacro(MouseInteractorStyleDrawLine);
 } // namespace
 
 int main(int argc, char* argv[])
@@ -327,12 +334,12 @@ int main(int argc, char* argv[])
     colorDroplist->setCurrentIndex(0); // Set default value
     dockLayout->addWidget(colorDroplist);
 
-    // Thickness Slider
-    QSlider* thicknessSlider = new QSlider(Qt::Horizontal);
-    thicknessSlider->setMinimum(1);
-    thicknessSlider->setMaximum(20);
-    thicknessSlider->setValue(1); // Set default value
-    dockLayout->addWidget(thicknessSlider);
+    // Create a QLineEdit widget and set a placeholder text
+    QLineEdit* lineEdit = new QLineEdit();
+    lineEdit->setPlaceholderText("Enter the thickness");
+
+    // Add the QLineEdit widget to the control dock layout
+    dockLayout->addWidget(lineEdit);
 
     // Chooosing Shapes to draw button
     QPushButton* changeshapes = new QPushButton("Change Shape");
@@ -374,20 +381,17 @@ int main(int argc, char* argv[])
     dockLayout->addWidget(transform_list);
 
     // shape list dock
-    QDockWidget shapeListDock;
-    mainWindow.addDockWidget(Qt::RightDockWidgetArea, &shapeListDock);
-
-    QLabel shapeListDockTitle("Shapes List");
-    shapeListDockTitle.setMargin(20);
-    shapeListDock.setTitleBarWidget(&shapeListDockTitle);
+    // Initialize an empty QListWidget to store the drawn shapes
+    QListWidget shapeListWidget;
+    QDockWidget* shapeListDock = new QDockWidget("Shapes List", &mainWindow);
+    shapeListDock->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
+    mainWindow.addDockWidget(Qt::RightDockWidgetArea, shapeListDock);
 
     QPointer<QVBoxLayout> shapeListLayout = new QVBoxLayout();
-    QWidget shapeListContainer;
-    shapeListContainer.setLayout(shapeListLayout);
-    shapeListDock.setWidget(&shapeListContainer);
-
-    QComboBox* shapeListComboBox = new QComboBox();
-    shapeListLayout->addWidget(shapeListComboBox);
+    QWidget* shapeListContainer = new QWidget();
+    shapeListContainer->setLayout(shapeListLayout);
+    shapeListDock->setWidget(shapeListContainer);
+    shapeListLayout->addWidget(&shapeListWidget);
 
     // render area
     QPointer<QVTKOpenGLNativeWidget> vtkRenderWidget =
@@ -409,16 +413,16 @@ int main(int argc, char* argv[])
 
     // Use a lambda function with capture by reference
     QObject::connect(changeshapes, &QPushButton::clicked,
-        [=, &shapesdroplist, &window]() { Change_Shapes(shapesdroplist, window); });
+        [=, &shapesdroplist, &window, &shapeListWidget]() { Change_Shapes(shapesdroplist, window, shapeListWidget); });
 
     // Connect Change Color 
     QObject::connect(changeColorButton, &QPushButton::clicked,
         [=, &colorDroplist, &window]() { ChangeColor_Button(colorDroplist, window, shapesdroplist); });
 
     // Connect Change Thickness
-    QObject::connect(thicknessSlider, &QSlider::valueChanged, [&]() {
-        int thickness = thicknessSlider->value();
-        UpdateLineThickness(thickness, window, shapesdroplist);
+    QObject::connect(lineEdit, &QLineEdit::returnPressed, [&]() {
+        int thickness = lineEdit->text().toInt();
+        UpdateThickness(thickness, window, shapesdroplist);
         });
 
     // Connect save button
@@ -429,7 +433,6 @@ int main(int argc, char* argv[])
     QObject::connect(&uploadButton, &QPushButton::released,
         [&]() {  ::Load(shapesdroplist); });
 
-
     // Connect Delete Button
     QObject::connect(delete_button, &QPushButton::clicked,
         [=, &shapesdroplist, &window]() { Delete(shapesdroplist, window); });
@@ -437,8 +440,6 @@ int main(int argc, char* argv[])
     // Connect Change Color 
     QObject::connect(trasform_button, &QPushButton::clicked,
         [=, &transform_list, &window]() { Transform(transform_list, window, shapesdroplist); });
-
-    //shapestore.print();
 
     mainWindow.show();
 
@@ -766,10 +767,6 @@ namespace {
         renderer->AddActor(actor_Hexahedron);
     }
 
-    void Draw_Polygon() {
-
-    }
-
     void Draw_Star(double radius, string color, int thickness) {
         // Number of points to approximate the star
         int numPoints = 5; // You can adjust this value to change the level of detail of the star
@@ -800,27 +797,6 @@ namespace {
 
         // Add the actor to the renderer
         renderer->AddActor(actor_Star);
-    }
-
-    void DrawLine(vtkGenericOpenGLRenderWindow* window) {
-        vtkNew<vtkPointPicker> pointPicker; // Create a new instance of the VTK point picker
-        mapper->SetInputConnection(lineSource->GetOutputPort()); // Set the input of the mapper to the output of the line source
-        mapper->Update();
-        actor->SetMapper(mapper); // Set the mapper for the actor
-        vtkNew <MouseInteractorStylePP> style; // Create a new instance of a custom VTK interactor style
-        /*vtkNew<vtkRenderer> renderer;*/
-        renderer->AddActor(actor);
-        window->AddRenderer(renderer);    //add renderer to window   
-        window->GetInteractor()->SetPicker(pointPicker);    // connect between qt and vtk
-        window->GetInteractor()->SetInteractorStyle(style);
-        style->setlinesource(lineSource);
-        style->setlineactor(actor);
-        //vtkRenderWidget->update();    //update render
-        window->Render();    // Render the window
-    }
-
-    void DrawPoly_Line() {
-
     }
 
     void Draw_Line(double x1_line, double y1_line, double x2_line, double y2_line, string color, int thickness) {
@@ -859,8 +835,68 @@ namespace {
     actor->GetProperty()->SetLineWidth(thickness);
 
     renderer->AddActor(actor);
-
 }
+
+    void DrawLine(vtkSmartPointer<vtkPoints> points) {
+
+
+        lineSource->SetPoint1(points->GetPoint(points->GetNumberOfPoints() - 2));
+        lineSource->SetPoint2(points->GetPoint(points->GetNumberOfPoints() - 1));
+
+        // Create a mapper and actor for the line
+
+        mapper->SetInputConnection(lineSource->GetOutputPort());
+
+        actor->SetMapper(mapper);
+        actor->GetProperty()->SetColor(1.0, 0.0, 0.0);
+        actor->GetProperty()->SetLineWidth(3.0);
+
+        // Add the actor to the scene
+        renderer->AddActor(actor);
+    }
+
+    void DrawPolyLine(vtkSmartPointer<vtkPoints> points) {
+        PolyLine_Source->SetPoints(points);
+        PolyLine_mapper->SetInputConnection(PolyLine_Source->GetOutputPort());
+        PolyLine_mapper->Update();
+        PolyLine_actor->SetMapper(PolyLine_mapper);
+        PolyLine_actor->GetProperty()->SetColor(1.0, 0.0, 0.0);
+        PolyLine_actor->GetProperty()->SetLineWidth(3.0);
+
+        // Add the actor to the scene
+        //renderer->RemoveAllViewProps();
+        renderer->AddActor(PolyLine_actor);
+    }
+
+    void DeleteLine_Poly(vtkSmartPointer<vtkPoints> points) {
+        DellineSource->SetPoint1(points->GetPoint(points->GetNumberOfPoints() - 2));
+        DellineSource->SetPoint2(points->GetPoint(points->GetNumberOfPoints() - 1));
+
+        // Create a mapper and actor for the line
+
+        Delmapper->SetInputConnection(DellineSource->GetOutputPort());
+
+        Delactor->SetMapper(Delmapper);
+        Delactor->GetProperty()->SetColor(renderer->GetBackground());
+        Delactor->GetProperty()->SetLineWidth(3.0);
+
+        // Add the actor to the scene
+        renderer->AddActor(Delactor);
+    }
+
+    void DrawPolygon(vtkSmartPointer<vtkPoints> points) {
+        points->InsertNextPoint(points->GetPoint(0));
+        Polygon_Source->SetPoints(points);
+        Polygon_mapper->SetInputConnection(Polygon_Source->GetOutputPort());
+        Polygon_mapper->Update();
+        Polygon_actor->SetMapper(Polygon_mapper);
+        Polygon_actor->GetProperty()->SetColor(1.0, 0.0, 0.0);
+        Polygon_actor->GetProperty()->SetLineWidth(3.0);
+
+        // Add the actor to the scene
+        //renderer->RemoveAllViewProps();
+        renderer->AddActor(Polygon_actor);
+    }
 
     void Draw_Rosette(int n_gon, double radius, string color, int thickness) {
 
@@ -1698,47 +1734,154 @@ namespace {
         tempactor->GetMapper()->Update();
     }
 
-    void UpdateLineThickness(int thickness, vtkGenericOpenGLRenderWindow* window, QComboBox* comboBox) {
+    void UpdateThickness(int thickness, vtkGenericOpenGLRenderWindow* window, QComboBox* comboBox) {
         QString shape_name = comboBox->currentText();
-        if (shape_name == "Circle") {
-            updatethickness_2(actor_circle, thickness);
-        }
-        else if (shape_name == "Line") {
-            updatethickness_2(actor, thickness);
-        }
-        else if (shape_name == "Ellipse") {
-            updatethickness_2(actor_Ellipse, thickness);
-        }
-        else if (shape_name == "Arc") {
-            updatethickness_2(actor_Arc, thickness);
-        }
-        else if (shape_name == "Sphere") {
-            updatethickness_2(actor_Football, thickness);
-        }
-        else if (shape_name == "Hexahedron") {
-            updatethickness_2(actor_Hexahedron, thickness);
-        }
-        else if (shape_name == "Regular Polygon") {
-            updatethickness_2(actor_Regular_Polygon, thickness);
-        }
-        else if (shape_name == "Cylinder") {
-            updatethickness_2(actor_Cylinder, thickness);
-        }
-        else if (shape_name == "Square") {
-            updatethickness_2(actor_Square, thickness);
-        }
-        else if (shape_name == "Star") {
-            updatethickness_2(actor_Star, thickness);
+        if (count_shapes > 1) {
+            QMessageBox messageBox;
+            messageBox.setText("Choose which shape you want to change the thickness");
+            messageBox.addButton(QMessageBox::tr("Last shape drawn"), QMessageBox::YesRole);
+            messageBox.addButton(QMessageBox::tr("All the Shapes"), QMessageBox::YesRole);
+            messageBox.addButton(QMessageBox::tr("Specific shape"), QMessageBox::YesRole);
+            messageBox.exec();
+            QString buttonText = messageBox.clickedButton()->text();
+            thickness_mode = buttonText.toStdString();
+            if (thickness_mode == "Last shape drawn") {
+                if (shape_name == "Circle") {
+                    updatethickness_2(actor_circle, thickness);
+                }
+                else if (shape_name == "Line") {
+                    updatethickness_2(actor, thickness);
+                }
+                else if (shape_name == "Ellipse") {
+                    updatethickness_2(actor_Ellipse, thickness);
+                }
+                else if (shape_name == "Arc") {
+                    updatethickness_2(actor_Arc, thickness);
+                }
+                else if (shape_name == "Sphere") {
+                    updatethickness_2(actor_Football, thickness);
+                }
+                else if (shape_name == "Hexahedron") {
+                    updatethickness_2(actor_Hexahedron, thickness);
+                }
+                else if (shape_name == "Regular Polygon") {
+                    updatethickness_2(actor_Regular_Polygon, thickness);
+                }
+                else if (shape_name == "Cylinder") {
+                    updatethickness_2(actor_Cylinder, thickness);
+                }
+                else if (shape_name == "Square") {
+                    updatethickness_2(actor_Square, thickness);
+                }
+                else if (shape_name == "Star") {
+                    updatethickness_2(actor_Star, thickness);
+                }
+                else {
+                    return;
+                }
+            }
+            else if (thickness_mode == "All the Shapes") {
+                vtkActorCollection* actors = renderer->GetActors(); // Get the collection of actors in the renderer
+                actors->InitTraversal(); // Initialize the actors traversal
+
+                vtkActor* actor_all = nullptr;
+                while ((actor_all = actors->GetNextActor()) != nullptr) {
+                    updatethickness_2(actor_all, thickness);
+                }
+            }
+            else if (thickness_mode == "Specific shape") {
+                QMessageBox messageBox_edit;
+                QComboBox* comboBox = new QComboBox(); // Create a new QComboBox object
+                for (const auto& shapeName : drawnShapes) {
+                    std::cout << shapeName.toStdString() << " ";
+                    comboBox->addItem(shapeName);
+                }
+                messageBox_edit.layout()->addWidget(comboBox); // Add the QComboBox to the QMessageBox's layout
+                messageBox_edit.exec(); // Show the QMessageBox
+                QString selectedShape = comboBox->currentText(); // Get the currently selected shape from the QComboBox
+                if (selectedShape == "Circle") {
+                    updatethickness_2(actor_circle, thickness);
+                }
+                else if (selectedShape == "Line") {
+                    updatethickness_2(actor, thickness);
+                }
+                else if (selectedShape == "Ellipse") {
+                    updatethickness_2(actor_Ellipse, thickness);
+                }
+                else if (selectedShape == "Arc") {
+                    updatethickness_2(actor_Arc, thickness);
+                }
+                else if (selectedShape == "Sphere") {
+                    updatethickness_2(actor_Football, thickness);
+                }
+                else if (selectedShape == "Hexahedron") {
+                    updatethickness_2(actor_Hexahedron, thickness);
+                }
+                else if (selectedShape == "Regular Polygon") {
+                    updatethickness_2(actor_Regular_Polygon, thickness);
+                }
+                else if (selectedShape == "Cylinder") {
+                    updatethickness_2(actor_Cylinder, thickness);
+                }
+                else if (selectedShape == "Square") {
+                    updatethickness_2(actor_Square, thickness);
+                }
+                else if (selectedShape == "Star") {
+                    updatethickness_2(actor_Star, thickness);
+                }
+                else {
+                    return;
+                }
+            }
         }
         else {
-            return;
+            if (shape_name == "Circle") {
+                updatethickness_2(actor_circle, thickness);
+            }
+            else if (shape_name == "Line") {
+                updatethickness_2(actor, thickness);
+            }
+            else if (shape_name == "Ellipse") {
+                updatethickness_2(actor_Ellipse, thickness);
+            }
+            else if (shape_name == "Arc") {
+                updatethickness_2(actor_Arc, thickness);
+            }
+            else if (shape_name == "Sphere") {
+                updatethickness_2(actor_Football, thickness);
+            }
+            else if (shape_name == "Hexahedron") {
+                updatethickness_2(actor_Hexahedron, thickness);
+            }
+            else if (shape_name == "Regular Polygon") {
+                updatethickness_2(actor_Regular_Polygon, thickness);
+            }
+            else if (shape_name == "Cylinder") {
+                updatethickness_2(actor_Cylinder, thickness);
+            }
+            else if (shape_name == "Square") {
+                updatethickness_2(actor_Square, thickness);
+            }
+            else if (shape_name == "Star") {
+                updatethickness_2(actor_Star, thickness);
+            }
+            else {
+                return;
+            }
         }
         window->Render();
     }
 
-    void Change_Shapes(QComboBox* comboBox, vtkGenericOpenGLRenderWindow* window)
+    void add_shape_list(string shape_name, QListWidget& shapeListWidget) {
+        QString qshape_name = QString::fromStdString(shape_name);
+        QListWidgetItem* item = new QListWidgetItem(qshape_name, &shapeListWidget);
+        item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
+    }
+
+    void Change_Shapes(QComboBox* comboBox, vtkGenericOpenGLRenderWindow* window, QListWidget& shapeListWidget)
     {
         std::string shape_name = comboBox->currentText().toStdString();
+        vtkNew<MouseInteractorStyleDrawLine> style;
         if (shape_name == "Circle")
         {
             bool ok;
@@ -1748,6 +1891,7 @@ namespace {
             }
             Draw_circle(Radius_Circle, "Red", 1.0);
             drawnshapes_and_all_count(shape_name);
+            add_shape_list(shape_name, shapeListWidget);
         }
         else if (shape_name == "Sphere") {
             bool ok;
@@ -1757,6 +1901,7 @@ namespace {
             }
             Draw_Football(Radius_Sphere, "Red", 1.0);
             drawnshapes_and_all_count(shape_name);
+            add_shape_list(shape_name, shapeListWidget);
         }
         else if (shape_name == "Arc")
         {
@@ -1767,6 +1912,7 @@ namespace {
             }
             Draw_Arc(Radius_Arc, "Red", 1.0);
             drawnshapes_and_all_count(shape_name);
+            add_shape_list(shape_name, shapeListWidget);
         }
         else if (shape_name == "Hexahedron")
         {
@@ -1777,15 +1923,15 @@ namespace {
             }
             Draw_Hexahedron(Radius_Hexahedron, "Red", 1.0);
             drawnshapes_and_all_count(shape_name);
+            add_shape_list(shape_name, shapeListWidget);
         }
         else if (shape_name == "Line")
         {
-            Line_Poly = true;
             // Ask user for filled or non-filled region
             QMessageBox messageBox;
             messageBox.setText("Choose Drawning Style");
-            QAbstractButton* filledButton = messageBox.addButton(QMessageBox::tr("Mouse Click"), QMessageBox::YesRole);
-            QAbstractButton* nonFilledButton = messageBox.addButton(QMessageBox::tr("Enter points"), QMessageBox::YesRole);
+            QAbstractButton* button = messageBox.addButton(QMessageBox::tr("Mouse Click"), QMessageBox::YesRole);
+            QAbstractButton* button_1 = messageBox.addButton(QMessageBox::tr("Enter points"), QMessageBox::YesRole);
             messageBox.exec();
             QString buttonText = messageBox.clickedButton()->text();
             mode_line = buttonText.toStdString();
@@ -1810,18 +1956,43 @@ namespace {
                 Draw_Line(x1_line, y1_line, x2_line, y2_line, "Red", 1.0);
             }
             else {
-                DrawLine(window);
+                vtkNew<vtkRenderWindowInteractor> renderWindowInteractor;
+                renderWindowInteractor->SetRenderWindow(window);
+                // Set the custom interactor style
+                style->SetRenderer(renderer);
+
+                style->setFlag(true);
+                style->setPolyFlag(false);
+                style->setPolygonFlag(false);
+                renderWindowInteractor->SetInteractorStyle(style.Get());
             }
             drawnshapes_and_all_count(shape_name);
+            add_shape_list(shape_name, shapeListWidget);
         }
         else if (shape_name == "Polyline")
         {
+            vtkNew<vtkRenderWindowInteractor> renderWindowInteractor;
+            renderWindowInteractor->SetRenderWindow(window);
+            // Set the custom interactor style
+            style->SetRenderer(renderer);
+            style->setFlag(false);
+            style->setPolyFlag(true);
+            style->setPolygonFlag(false);
+            renderWindowInteractor->SetInteractorStyle(style.Get());
             drawnshapes_and_all_count(shape_name);
+            add_shape_list(shape_name, shapeListWidget);
         }
         else if (shape_name == "Polygon") {
-            is_Polygon = true;
-            Draw_Polygon();
+            vtkNew<vtkRenderWindowInteractor> renderWindowInteractor;
+            renderWindowInteractor->SetRenderWindow(window);
+            // Set the custom interactor style
+            style->SetRenderer(renderer);
+            style->setFlag(false);
+            style->setPolyFlag(false);
+            style->setPolygonFlag(true);
+            renderWindowInteractor->SetInteractorStyle(style.Get());
             drawnshapes_and_all_count(shape_name);
+            add_shape_list(shape_name, shapeListWidget);
         }
         else if (shape_name == "Regular Polygon")
         {
@@ -1836,6 +2007,7 @@ namespace {
             }
             Draw_Regular_Polygon(Radius_Reg_Polygon, NO_POINTS, "Red", 1.0);
             drawnshapes_and_all_count(shape_name);
+            add_shape_list(shape_name, shapeListWidget);
         }
         else if (shape_name == "Cylinder") {
             bool ok;
@@ -1849,6 +2021,7 @@ namespace {
             }
             Draw_Cylinder(Radius_Cylinder, Height_Cylinder, "Red", 1.0);
             drawnshapes_and_all_count(shape_name);
+            add_shape_list(shape_name, shapeListWidget);
         }
         else if (shape_name == "Ellipse") {
             bool ok;
@@ -1862,6 +2035,7 @@ namespace {
             }
             Draw_Ellipse(MAJOR_AXIS, MINOR_AXIS, "Red", 1.0);
             drawnshapes_and_all_count(shape_name);
+            add_shape_list(shape_name, shapeListWidget);
         }
         else if (shape_name == "Square") {
             bool ok;
@@ -1871,6 +2045,7 @@ namespace {
             }
             Draw_Square(Radius_Square, "Red", 1.0);
             drawnshapes_and_all_count(shape_name);
+            add_shape_list(shape_name, shapeListWidget);
         }
         else if (shape_name == "Star") {
             bool ok;
@@ -1880,6 +2055,7 @@ namespace {
             }
             Draw_Star(Radius_Star, "Red", 1.0);
             drawnshapes_and_all_count(shape_name);
+            add_shape_list(shape_name, shapeListWidget);
         }
         else if (shape_name == "Rosette") {
             bool ok;
@@ -1893,6 +2069,19 @@ namespace {
             }
             Draw_Rosette(num_vertices_ros, Radius_Rosette, "Red", 1.0);
             drawnshapes_and_all_count(shape_name);
+            add_shape_list(shape_name, shapeListWidget);
+        }
+        if (shape_name != "Polyline" && shape_name != "Line" && shape_name != "Polygon") {
+            vtkNew<vtkRenderWindowInteractor> renderWindowInteractor;
+            renderWindowInteractor->SetRenderWindow(window);
+            // Set the custom interactor style
+
+            style->SetRenderer(renderer);
+
+            style->setFlag(false);
+            style->setPolyFlag(false);
+            style->setPolygonFlag(false);
+            renderWindowInteractor->SetInteractorStyle(style.Get());
         }
         window->Render();
     }
@@ -2359,15 +2548,6 @@ namespace {
         }
     }
 
-    //void specify_source_and_mapper(vtkSmartPointer<vtkActor> tempactor) {
-    //    if (tempactor == actor) {
-    //        Translation(lineSource, mapper);
-    //    }
-    //    else if (tempactor == actor_circle){
-    //        Translation(circle_Source, mapper_circle);
-    //    }
-    //}
-
     void Transform(QComboBox* comboBox_Transform, vtkGenericOpenGLRenderWindow* window, QComboBox* comboBox_Shapes) {
         QString transform_state = comboBox_Transform->currentText();
         QString shape_name = comboBox_Shapes->currentText();
@@ -2411,14 +2591,5 @@ namespace {
             transform_modes(transform_state, shape_name);
         }
         window->Render();
-    }
-
-    void Add_shape_list(QComboBox* shapeListComboBox)
-    {
-        // Add the shapes to the combo box
-        for (const auto& shapeName : drawnShapes) {
-            std::cout << shapeName.toStdString() << " ";
-            shapeListComboBox->addItem(shapeName);
-        }
     }
 } // namespace
