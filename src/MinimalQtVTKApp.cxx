@@ -146,6 +146,8 @@ bool Square_deleted = false;
 bool Hexahedron_deleted = false;
 bool Star_deleted = false;
 bool line_deleted = false;
+bool polyline_deleted = false;
+bool Polygon_deleted = false;
 string Color_Line;
 string Color_Circle;
 string Color_Ellipse;
@@ -156,6 +158,8 @@ string Color_Sphere;
 string Color_Cylinder;
 string Color_Arc;
 string Color_Regular_Polygon;
+string Color_PolyLine;
+string Color_Polygon;
 
 namespace {
     void DrawPolyLine(vtkSmartPointer<vtkPoints> points);
@@ -359,7 +363,6 @@ int main(int argc, char* argv[])
     shapesdroplist->addItem("Sphere");
     shapesdroplist->addItem("Square");
     shapesdroplist->addItem("Star");
-    shapesdroplist->addItem("Rosette");
     shapesdroplist->setCurrentIndex(0); // Set default value
     dockLayout->addWidget(shapesdroplist);
 
@@ -898,10 +901,6 @@ namespace {
         renderer->AddActor(Polygon_actor);
     }
 
-    void Draw_Rosette(int n_gon, double radius, string color, int thickness) {
-
-    }
-
     string specify_color(double* color) {
         // Get the name of the color based on its RGB value
         if (color[0] == 1.0 && color[1] == 0.0 && color[2] == 0.0) {
@@ -1354,6 +1353,12 @@ namespace {
                 else if (shape_name == "Star") {
                     Change_Color(color_name_std, actor_Star);
                 }
+                else if (shape_name == "Polyline") {
+                    Change_Color(color_name_std, PolyLine_actor);
+                }
+                else if (shape_name == "Polygon") {
+                    Change_Color(color_name_std, Polygon_actor);
+                }
                 else {
                     return;
                 }
@@ -1407,6 +1412,12 @@ namespace {
                 else if (selectedShape.toStdString() == "Star") {
                     Change_Color(color_name_std, actor_Star);
                 }
+                else if (selectedShape.toStdString() == "Polyline") {
+                    Change_Color(color_name_std, PolyLine_actor);
+                }
+                else if (selectedShape.toStdString() == "Polygon") {
+                    Change_Color(color_name_std, Polygon_actor);
+                }
                 else {
                     return;
                 }
@@ -1445,6 +1456,12 @@ namespace {
             }
             else if (shape_name == "Star") {
                 Change_Color(color_name_std, actor_Star);
+            }
+            else if (shape_name == "Polyline") {
+                Change_Color(color_name_std, PolyLine_actor);
+            }
+            else if (shape_name == "Polygon") {
+                Change_Color(color_name_std, Polygon_actor);
             }
             else {
                 return;
@@ -1776,6 +1793,12 @@ namespace {
                 else if (shape_name == "Star") {
                     updatethickness_2(actor_Star, thickness);
                 }
+                else if (shape_name == "Polyline") {
+                    updatethickness_2(PolyLine_actor, thickness);
+                }
+                else if (shape_name == "Polygon") {
+                    updatethickness_2(Polygon_actor, thickness);
+                }
                 else {
                     return;
                 }
@@ -1829,6 +1852,12 @@ namespace {
                 else if (selectedShape == "Star") {
                     updatethickness_2(actor_Star, thickness);
                 }
+                else if (selectedShape == "Polyline") {
+                    updatethickness_2(PolyLine_actor, thickness);
+                }
+                else if (selectedShape == "Polygon") {
+                    updatethickness_2(Polygon_actor, thickness);
+                }
                 else {
                     return;
                 }
@@ -1864,6 +1893,12 @@ namespace {
             }
             else if (shape_name == "Star") {
                 updatethickness_2(actor_Star, thickness);
+            }
+            else if (shape_name == "Polyline") {
+                updatethickness_2(PolyLine_actor, thickness);
+            }
+            else if (shape_name == "Polygon") {
+                updatethickness_2(Polygon_actor, thickness);
             }
             else {
                 return;
@@ -2057,20 +2092,6 @@ namespace {
             drawnshapes_and_all_count(shape_name);
             add_shape_list(shape_name, shapeListWidget);
         }
-        else if (shape_name == "Rosette") {
-            bool ok;
-            num_vertices_ros = QInputDialog::getDouble(nullptr, "Enter Number of vertices", "Enter the number of vertices of the Rosette:", 0.0, -100.0, 100.0, 2, &ok);
-            if (!ok) {
-                return;
-            }
-            Radius_Rosette = QInputDialog::getDouble(nullptr, "Enter the radius", "Enter the radius of the Rosette:", 0.0, -100.0, 100.0, 2, &ok);
-            if (!ok) {
-                return;
-            }
-            Draw_Rosette(num_vertices_ros, Radius_Rosette, "Red", 1.0);
-            drawnshapes_and_all_count(shape_name);
-            add_shape_list(shape_name, shapeListWidget);
-        }
         if (shape_name != "Polyline" && shape_name != "Line" && shape_name != "Polygon") {
             vtkNew<vtkRenderWindowInteractor> renderWindowInteractor;
             renderWindowInteractor->SetRenderWindow(window);
@@ -2194,6 +2215,20 @@ namespace {
                     drawnShapes.erase("Star");
                     Star_deleted = true;
                 }
+                else if (shape_name == "Polyline") {
+                    double* color = PolyLine_actor->GetProperty()->GetColor();
+                    Color_PolyLine = specify_color(color);
+                    delete_shape(PolyLine_Source, PolyLine_actor);
+                    drawnShapes.erase("Polyline");
+                    polyline_deleted = true;
+                }
+                else if (shape_name == "Polygon") {
+                    double* color = Polygon_actor->GetProperty()->GetColor();
+                    Color_Polygon = specify_color(color);
+                    delete_shape(Polygon_Source, Polygon_actor);
+                    drawnShapes.erase("Polygon");
+                    Polygon_deleted = true;
+                }
                 else {
                     return;
                 }
@@ -2283,6 +2318,20 @@ namespace {
                     drawnShapes.erase(selectedShape);
                     Star_deleted = true;
                 }
+                else if (selectedShape.toStdString() == "Polyline") {
+                    double* color = PolyLine_actor->GetProperty()->GetColor();
+                    Color_PolyLine = specify_color(color);
+                    delete_shape(PolyLine_Source, PolyLine_actor);
+                    drawnShapes.erase(selectedShape);
+                    polyline_deleted = true;
+                }
+                else if (selectedShape.toStdString() == "Polygon") {
+                    double* color = Polygon_actor->GetProperty()->GetColor();
+                    Color_Polygon = specify_color(color);
+                    delete_shape(Polygon_Source, Polygon_actor);
+                    drawnShapes.erase(selectedShape);
+                    Polygon_deleted = true;
+                }
                 else {
                     return;
                 }
@@ -2291,16 +2340,7 @@ namespace {
         window->Render(); // Render the window to reflect the changes
     }
 
-    void Translation(vtkSmartPointer<vtkLineSource> temp_source, vtkDataSetMapper* temp_mapper) {
-        bool ok;
-        double m13 = QInputDialog::getDouble(nullptr, "Enter Transformation X", "Enter the Transformation X:", 0.0, -100.0, 100.0, 2, &ok);
-        if (!ok) {
-            return;
-        }
-        double m23 = QInputDialog::getDouble(nullptr, "Enter Transformation Y", "Enter the Transformation Y:", 0.0, -100.0, 100.0, 2, &ok);
-        if (!ok) {
-            return;
-        }
+    void Translation(vtkSmartPointer<vtkLineSource> temp_source, vtkDataSetMapper* temp_mapper, double m13, double m23) {
         // Get the points of the circle shape
         vtkPoints* points = temp_source->GetPoints();
 
@@ -2322,18 +2362,7 @@ namespace {
         temp_mapper->Update();
     }
 
-    void Scaling(vtkSmartPointer<vtkLineSource> temp_source) {
-        bool ok;
-        double scalingFactorX = QInputDialog::getDouble(nullptr, "Enter Scaling factor X", "Enter the Scaling factor in X direction:", 0.0, -100.0, 100.0, 2, &ok);
-        // Example scaling factor in x-direction
-        if (!ok) {
-            return;
-        }
-        double scalingFactorY = QInputDialog::getDouble(nullptr, "Enter Scaling factor Y", "Enter the Scaling factor in Y direction:", 0.0, -100.0, 100.0, 2, &ok);
-        // Example scaling factor in y-direction
-        if (!ok) {
-            return;
-        }
+    void Scaling(vtkSmartPointer<vtkLineSource> temp_source, double scalingFactorX, double scalingFactorY) {
         // Get the points of the circle
         vtkSmartPointer<vtkPoints> points = temp_source->GetPoints();
         for (int i = 0; i < points->GetNumberOfPoints(); i++) {
@@ -2347,12 +2376,7 @@ namespace {
         temp_source->Modified(); // Mark the source as modified
     }
 
-    void Rotation(vtkSmartPointer<vtkLineSource> temp_source, vtkDataSetMapper* temp_mapper) {
-        bool ok;
-        double angle = QInputDialog::getDouble(nullptr, "Enter the Angle", "Enter the Angle of Rotation:", 0.0, -100.0, 360, 2, &ok);
-        if (!ok) {
-            return;
-        }
+    void Rotation(vtkSmartPointer<vtkLineSource> temp_source, vtkDataSetMapper* temp_mapper, double angle) {
         angle *= vtkMath::Pi() / 180.0; // Convert the angle to radians
         vtkPoints* points = temp_source->GetPoints();
 
@@ -2376,12 +2400,7 @@ namespace {
         temp_mapper->Update();
     }
 
-    void Shearing(vtkLineSource* temp_source) {
-        bool ok;
-        double h = QInputDialog::getDouble(nullptr, "Enter the shearing factor", "Enter the factor of Shearing:", 0.0, -100.0, 360, 2, &ok);
-        if (!ok) {
-            return;
-        }  // Specify the desired shearing factor
+    void Shearing(vtkLineSource* temp_source, double h) {
         // Get the current coordinates of the points in the source
         vtkSmartPointer<vtkPoints> points = temp_source->GetPoints();
 
@@ -2407,144 +2426,366 @@ namespace {
 
     void transform_modes(QString transform_state, QString shape_name) {
         if (transform_state == "Translation") {
+            bool ok;
+            double m13 = QInputDialog::getDouble(nullptr, "Enter Transformation X", "Enter the Transformation X:", 0.0, -100.0, 100.0, 2, &ok);
+            if (!ok) {
+                return;
+            }
+            double m23 = QInputDialog::getDouble(nullptr, "Enter Transformation Y", "Enter the Transformation Y:", 0.0, -100.0, 100.0, 2, &ok);
+            if (!ok) {
+                return;
+            }
             if (shape_name == "Circle") {
-                Translation(circle_Source, mapper_circle);
+                Translation(circle_Source, mapper_circle, m13, m23);
             }
             else if (shape_name == "Line") {
-                Translation(lineSource, mapper);
+                Translation(lineSource, mapper, m13, m23);
             }
             else if (shape_name == "Ellipse") {
-                Translation(Ellipse_Source, mapper_Ellipse);
+                Translation(Ellipse_Source, mapper_Ellipse, m13, m23);
             }
             else if (shape_name == "Arc") {
-                Translation(Arc_Source, mapper_Arc);
+                Translation(Arc_Source, mapper_Arc, m13, m23);
             }
             else if (shape_name == "Sphere") {
-                Translation(Football_Source, mapper_Football);
+                Translation(Football_Source, mapper_Football, m13, m23);
             }
             else if (shape_name == "Hexahedron") {
-                Translation(Hexahedron_Source, mapper_Hexahedron);
+                Translation(Hexahedron_Source, mapper_Hexahedron, m13, m23);
             }
             else if (shape_name == "Regular Polygon") {
-                Translation(Regular_Polygon_Source, mapper_Regular_Polygon);
+                Translation(Regular_Polygon_Source, mapper_Regular_Polygon, m13, m23);
             }
             else if (shape_name == "Cylinder") {
-                Translation(Cylinder_Source, mapper_Cylinder);
+                Translation(Cylinder_Source, mapper_Cylinder, m13, m23);
             }
             else if (shape_name == "Square") {
-                Translation(Square_Source, mapper_Square);
+                Translation(Square_Source, mapper_Square, m13, m23);
             }
             else if (shape_name == "Star") {
-                Translation(Star_Source, mapper_Star);
+                Translation(Star_Source, mapper_Star, m13, m23);
+            }
+            else if (shape_name == "Polyline") {
+                Translation(PolyLine_Source, PolyLine_mapper, m13, m23);
+            }
+            else if (shape_name == "Polygon") {
+                Translation(Polygon_Source, Polygon_mapper, m13, m23);
             }
             else {
                 return;
             }
         }
         else if (transform_state == "Scaling") {
+            bool ok;
+            double scalingFactorX = QInputDialog::getDouble(nullptr, "Enter Scaling factor X", "Enter the Scaling factor in X direction:", 0.0, -100.0, 100.0, 2, &ok);
+            // Example scaling factor in x-direction
+            if (!ok) {
+                return;
+            }
+            double scalingFactorY = QInputDialog::getDouble(nullptr, "Enter Scaling factor Y", "Enter the Scaling factor in Y direction:", 0.0, -100.0, 100.0, 2, &ok);
+            // Example scaling factor in y-direction
+            if (!ok) {
+                return;
+            }
             if (shape_name == "Circle") {
-                Scaling(circle_Source);
+                Scaling(circle_Source, scalingFactorX, scalingFactorY);
             }
             else if (shape_name == "Line") {
-                Scaling(lineSource);
+                Scaling(lineSource, scalingFactorX, scalingFactorY);
             }
             else if (shape_name == "Ellipse") {
-                Scaling(Ellipse_Source);
+                Scaling(Ellipse_Source, scalingFactorX, scalingFactorY);
             }
             else if (shape_name == "Arc") {
-                Scaling(Arc_Source);
+                Scaling(Arc_Source, scalingFactorX, scalingFactorY);
             }
             else if (shape_name == "Sphere") {
-                Scaling(Football_Source);
+                Scaling(Football_Source, scalingFactorX, scalingFactorY);
             }
             else if (shape_name == "Hexahedron") {
-                Scaling(Hexahedron_Source);
+                Scaling(Hexahedron_Source, scalingFactorX, scalingFactorY);
             }
             else if (shape_name == "Regular Polygon") {
-                Scaling(Regular_Polygon_Source);
+                Scaling(Regular_Polygon_Source, scalingFactorX, scalingFactorY);
             }
             else if (shape_name == "Cylinder") {
-                Scaling(Cylinder_Source);
+                Scaling(Cylinder_Source, scalingFactorX, scalingFactorY);
             }
             else if (shape_name == "Square") {
-                Scaling(Square_Source);
+                Scaling(Square_Source, scalingFactorX, scalingFactorY);
             }
             else if (shape_name == "Star") {
-                Scaling(Star_Source);
+                Scaling(Star_Source, scalingFactorX, scalingFactorY);
+            }
+            else if (shape_name == "Polyline") {
+                Scaling(PolyLine_Source, scalingFactorX, scalingFactorY);
+            }
+            else if (shape_name == "Polygon") {
+                Scaling(Polygon_Source, scalingFactorX, scalingFactorY);
             }
             else {
                 return;
             }
         }
         else if (transform_state == "Rotating") {
+            bool ok;
+            double angle = QInputDialog::getDouble(nullptr, "Enter the Angle", "Enter the Angle of Rotation:", 0.0, -100.0, 360, 2, &ok);
+            if (!ok) {
+                return;
+            }
             if (shape_name == "Circle") {
-                Rotation(circle_Source, mapper_circle);
+                Rotation(circle_Source, mapper_circle, angle);
             }
             else if (shape_name == "Line") {
-                Rotation(lineSource, mapper);
+                Rotation(lineSource, mapper, angle);
             }
             else if (shape_name == "Ellipse") {
-                Rotation(Ellipse_Source, mapper_Ellipse);
+                Rotation(Ellipse_Source, mapper_Ellipse, angle);
             }
             else if (shape_name == "Arc") {
-                Rotation(Arc_Source, mapper_Arc);
+                Rotation(Arc_Source, mapper_Arc, angle);
             }
             else if (shape_name == "Sphere") {
-                Rotation(Football_Source, mapper_Football);
+                Rotation(Football_Source, mapper_Football, angle);
             }
             else if (shape_name == "Hexahedron") {
-                Rotation(Hexahedron_Source, mapper_Hexahedron);
+                Rotation(Hexahedron_Source, mapper_Hexahedron, angle);
             }
             else if (shape_name == "Regular Polygon") {
-                Rotation(Regular_Polygon_Source, mapper_Regular_Polygon);
+                Rotation(Regular_Polygon_Source, mapper_Regular_Polygon, angle);
             }
             else if (shape_name == "Cylinder") {
-                Rotation(Cylinder_Source, mapper_Cylinder);
+                Rotation(Cylinder_Source, mapper_Cylinder, angle);
             }
             else if (shape_name == "Square") {
-                Rotation(Square_Source, mapper_Square);
+                Rotation(Square_Source, mapper_Square, angle);
             }
             else if (shape_name == "Star") {
-                Rotation(Star_Source, mapper_Star);
+                Rotation(Star_Source, mapper_Star, angle);
+            }
+            else if (shape_name == "Polyline") {
+                Rotation(PolyLine_Source, PolyLine_mapper, angle);
+            }
+            else if (shape_name == "Polygon") {
+                Rotation(Polygon_Source, Polygon_mapper, angle);
             }
             else {
                 return;
             }
         }
         else if (transform_state == "Shearing") {
+            bool ok;
+            double h = QInputDialog::getDouble(nullptr, "Enter the shearing factor", "Enter the factor of Shearing:", 0.0, -100.0, 360, 2, &ok);
+            if (!ok) {
+                return;
+            }  // Specify the desired shearing factor
             if (shape_name == "Circle") {
-                Shearing(circle_Source);
+                Shearing(circle_Source, h);
             }
             else if (shape_name == "Line") {
-                Shearing(lineSource);
+                Shearing(lineSource, h);
             }
             else if (shape_name == "Ellipse") {
-                Shearing(Ellipse_Source);
+                Shearing(Ellipse_Source, h);
             }
             else if (shape_name == "Arc") {
-                Shearing(Arc_Source);
+                Shearing(Arc_Source, h);
             }
             else if (shape_name == "Sphere") {
-                Shearing(Football_Source);
+                Shearing(Football_Source, h);
             }
             else if (shape_name == "Hexahedron") {
-                Shearing(Hexahedron_Source);
+                Shearing(Hexahedron_Source, h);
             }
             else if (shape_name == "Regular Polygon") {
-                Shearing(Regular_Polygon_Source);
+                Shearing(Regular_Polygon_Source, h);
             }
             else if (shape_name == "Cylinder") {
-                Shearing(Cylinder_Source);
+                Shearing(Cylinder_Source, h);
             }
             else if (shape_name == "Square") {
-                Shearing(Square_Source);
+                Shearing(Square_Source, h);
             }
             else if (shape_name == "Star") {
-                Shearing(Star_Source);
+                Shearing(Star_Source, h);
+            }
+            else if (shape_name == "Polyline") {
+                Shearing(PolyLine_Source, h);
+            }
+            else if (shape_name == "Polygon") {
+                Shearing(Polygon_Source, h);
             }
             else {
                 return;
             }
+        }
+    }
+
+    void Translation_all_shapes(vtkSmartPointer<vtkActor> tempactor, double m13, double m23) {
+        if (tempactor == actor) {
+            Translation(lineSource, mapper, m13, m23);
+        }
+        else if (tempactor == actor_circle) {
+            Translation(circle_Source, mapper_circle, m13, m23);
+        }
+        else if (tempactor == actor_Arc) {
+            Translation(Arc_Source, mapper_Arc, m13, m23);
+        }
+        else if (tempactor == actor_Cylinder) {
+            Translation(Cylinder_Source, mapper_Cylinder, m13, m23);
+        }
+        else if (tempactor == actor_Ellipse) {
+            Translation(Ellipse_Source, mapper_Ellipse, m13, m23);
+        }
+        else if (tempactor == actor_Football) {
+            Translation(Football_Source, mapper_Football, m13, m23);
+        }
+        else if (tempactor == actor_Hexahedron) {
+            Translation(Hexahedron_Source, mapper_Hexahedron, m13, m23);
+        }
+        else if (tempactor == actor_Regular_Polygon) {
+            Translation(Regular_Polygon_Source, mapper_Regular_Polygon, m13, m23);
+        }
+        else if (tempactor == actor_Square) {
+            Translation(Square_Source, mapper_Square, m13, m23);
+        }
+        else if (tempactor == actor_Star) {
+            Translation(Star_Source, mapper_Star, m13, m23);
+        }
+        else if (tempactor == Polygon_actor) {
+            Translation(Polygon_Source, Polygon_mapper, m13, m23);
+        }
+        else if (tempactor == PolyLine_actor) {
+            Translation(PolyLine_Source, PolyLine_mapper, m13, m23);
+        }
+        else {
+            return;
+        }
+    }
+
+    void Scaling_all_shapes(vtkSmartPointer<vtkActor> tempactor, double scalingFactorX, double scalingFactorY) {
+        if (tempactor == actor) {
+            Scaling(lineSource, scalingFactorX, scalingFactorY);
+        }
+        else if (tempactor == actor_circle) {
+            Scaling(circle_Source, scalingFactorX, scalingFactorY);
+        }
+        else if (tempactor == actor_Arc) {
+            Scaling(Arc_Source, scalingFactorX, scalingFactorY);
+        }
+        else if (tempactor == actor_Cylinder) {
+            Scaling(Cylinder_Source, scalingFactorX, scalingFactorY);
+        }
+        else if (tempactor == actor_Ellipse) {
+            Scaling(Ellipse_Source, scalingFactorX, scalingFactorY);
+        }
+        else if (tempactor == actor_Football) {
+            Scaling(Football_Source, scalingFactorX, scalingFactorY);
+        }
+        else if (tempactor == actor_Hexahedron) {
+            Scaling(Hexahedron_Source, scalingFactorX, scalingFactorY);
+        }
+        else if (tempactor == actor_Regular_Polygon) {
+            Scaling(Regular_Polygon_Source, scalingFactorX, scalingFactorY);
+        }
+        else if (tempactor == actor_Square) {
+            Scaling(Square_Source, scalingFactorX, scalingFactorY);
+        }
+        else if (tempactor == actor_Star) {
+            Scaling(Star_Source, scalingFactorX, scalingFactorY);
+        }
+        else if (tempactor == Polygon_actor) {
+            Scaling(Polygon_Source, scalingFactorX, scalingFactorY);
+        }
+        else if (tempactor == PolyLine_actor) {
+            Scaling(PolyLine_Source, scalingFactorX, scalingFactorY);
+        }
+        else {
+            return;
+        }
+    }
+
+    void Rotating_all_shapes(vtkSmartPointer<vtkActor> tempactor, double angle) {
+        if (tempactor == actor) {
+            Rotation(lineSource, mapper, angle);
+        }
+        else if (tempactor == actor_circle) {
+            Rotation(circle_Source, mapper_circle, angle);
+        }
+        else if (tempactor == actor_Arc) {
+            Rotation(Arc_Source, mapper_Arc, angle);
+        }
+        else if (tempactor == actor_Cylinder) {
+            Rotation(Cylinder_Source, mapper_Cylinder, angle);
+        }
+        else if (tempactor == actor_Ellipse) {
+            Rotation(Ellipse_Source, mapper_Ellipse, angle);
+        }
+        else if (tempactor == actor_Football) {
+            Rotation(Football_Source, mapper_Football, angle);
+        }
+        else if (tempactor == actor_Hexahedron) {
+            Rotation(Hexahedron_Source, mapper_Hexahedron, angle);
+        }
+        else if (tempactor == actor_Regular_Polygon) {
+            Rotation(Regular_Polygon_Source, mapper_Regular_Polygon, angle);
+        }
+        else if (tempactor == actor_Square) {
+            Rotation(Square_Source, mapper_Square, angle);
+        }
+        else if (tempactor == actor_Star) {
+            Rotation(Star_Source, mapper_Star, angle);
+        }
+        else if (tempactor == Polygon_actor) {
+            Rotation(Polygon_Source, Polygon_mapper, angle);
+        }
+        else if (tempactor == PolyLine_actor) {
+            Rotation(PolyLine_Source, PolyLine_mapper, angle);
+        }
+        else {
+            return;
+        }
+    }
+
+    void Shearing_all_shapes(vtkSmartPointer<vtkActor> tempactor, double h) {
+        if (tempactor == actor) {
+            Shearing(lineSource, h);
+        }
+        else if (tempactor == actor_circle) {
+            Shearing(circle_Source, h);
+        }
+        else if (tempactor == actor_Arc) {
+            Shearing(Arc_Source, h);
+        }
+        else if (tempactor == actor_Cylinder) {
+            Shearing(Cylinder_Source, h);
+        }
+        else if (tempactor == actor_Ellipse) {
+            Shearing(Ellipse_Source, h);
+        }
+        else if (tempactor == actor_Football) {
+            Shearing(Football_Source, h);
+        }
+        else if (tempactor == actor_Hexahedron) {
+            Shearing(Hexahedron_Source, h);
+        }
+        else if (tempactor == actor_Regular_Polygon) {
+            Shearing(Regular_Polygon_Source, h);
+        }
+        else if (tempactor == actor_Square) {
+            Shearing(Square_Source, h);
+        }
+        else if (tempactor == actor_Star) {
+            Shearing(Star_Source, h);
+        }
+        else if (tempactor == Polygon_actor) {
+            Shearing(Polygon_Source, h);
+        }
+        else if (tempactor == PolyLine_actor) {
+            Shearing(PolyLine_Source, h);
+        }
+        else {
+            return;
         }
     }
 
@@ -2564,15 +2805,68 @@ namespace {
                 transform_modes(transform_state, shape_name);
             }
             else if (transform_mode == "All the Shapes") {
-                //if (transform_state == "Translation") {
-
-                //    vtkActorCollection* actors = renderer->GetActors(); // Get the collection of actors in the renderer
-                //    actors->InitTraversal(); // Initialize the actors traversal
-                //    vtkActor* actor_all = nullptr;
-                //    while ((actor_all = actors->GetNextActor()) != nullptr) {
-                //        specify_source_and_mapper(actor_all);
-                //    }
-                //}
+                if (transform_state == "Translation") {
+                    bool ok;
+                    double m13 = QInputDialog::getDouble(nullptr, "Enter Transformation X", "Enter the Transformation X:", 0.0, -100.0, 100.0, 2, &ok);
+                    if (!ok) {
+                        return;
+                    }
+                    double m23 = QInputDialog::getDouble(nullptr, "Enter Transformation Y", "Enter the Transformation Y:", 0.0, -100.0, 100.0, 2, &ok);
+                    if (!ok) {
+                        return;
+                    }
+                    vtkActorCollection* actors = renderer->GetActors(); // Get the collection of actors in the renderer
+                    actors->InitTraversal(); // Initialize the actors traversal
+                    vtkActor* actor_all = nullptr;
+                    while ((actor_all = actors->GetNextActor()) != nullptr) {
+                        Translation_all_shapes(actor_all, m13, m23);
+                    }
+                }
+                else if (transform_state == "Scaling") {
+                    bool ok;
+                    double scalingFactorX = QInputDialog::getDouble(nullptr, "Enter Scaling factor X", "Enter the Scaling factor in X direction:", 0.0, -100.0, 100.0, 2, &ok);
+                    // Example scaling factor in x-direction
+                    if (!ok) {
+                        return;
+                    }
+                    double scalingFactorY = QInputDialog::getDouble(nullptr, "Enter Scaling factor Y", "Enter the Scaling factor in Y direction:", 0.0, -100.0, 100.0, 2, &ok);
+                    // Example scaling factor in y-direction
+                    if (!ok) {
+                        return;
+                    }
+                    vtkActorCollection* actors = renderer->GetActors(); // Get the collection of actors in the renderer
+                    actors->InitTraversal(); // Initialize the actors traversal
+                    vtkActor* actor_all = nullptr;
+                    while ((actor_all = actors->GetNextActor()) != nullptr) {
+                        Scaling_all_shapes(actor_all, scalingFactorX, scalingFactorY);
+                    }
+                }
+                else if (transform_state == "Rotating") {
+                    bool ok;
+                    double angle = QInputDialog::getDouble(nullptr, "Enter the Angle", "Enter the Angle of Rotation:", 0.0, -100.0, 360, 2, &ok);
+                    if (!ok) {
+                        return;
+                    }
+                    vtkActorCollection* actors = renderer->GetActors(); // Get the collection of actors in the renderer
+                    actors->InitTraversal(); // Initialize the actors traversal
+                    vtkActor* actor_all = nullptr;
+                    while ((actor_all = actors->GetNextActor()) != nullptr) {
+                        Rotating_all_shapes(actor_all, angle);
+                    }
+                }
+                else if (transform_state == "Shearing") {
+                    bool ok;
+                    double h = QInputDialog::getDouble(nullptr, "Enter the shearing factor", "Enter the factor of Shearing:", 0.0, -100.0, 360, 2, &ok);
+                    if (!ok) {
+                        return;
+                    }  // Specify the desired shearing factor
+                    vtkActorCollection* actors = renderer->GetActors(); // Get the collection of actors in the renderer
+                    actors->InitTraversal(); // Initialize the actors traversal
+                    vtkActor* actor_all = nullptr;
+                    while ((actor_all = actors->GetNextActor()) != nullptr) {
+                        Shearing_all_shapes(actor_all, h);
+                    }
+                }
             }
             else if (transform_mode == "Specific shape") {
                 QMessageBox messageBox_edit;
