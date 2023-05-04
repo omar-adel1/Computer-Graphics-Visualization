@@ -124,6 +124,7 @@ double picked[3]; // Declares an array of 3 doubles called "picked"
 string mode_line;
 string delete_mode;
 string color_mode = "One Shape";
+string shearing_direc_mode;
 string transform_mode;
 string thickness_mode;
 double x1_line;
@@ -2459,23 +2460,41 @@ namespace {
         temp_mapper->Update();
     }
 
-    void Shearing(vtkLineSource* temp_source, double h) {
+    void Shearing(vtkLineSource* temp_source, double h, string shearing_direc) {
         // Get the current coordinates of the points in the source
         vtkSmartPointer<vtkPoints> points = temp_source->GetPoints();
 
-        // Apply the shearing transformation to each point
-        for (vtkIdType i = 0; i < points->GetNumberOfPoints(); ++i) {
-            double point[3];
-            points->GetPoint(i, point);
-            double Px = point[0];
-            double Py = point[1];
+        if (shearing_direc == "x-axis") {
+            // Apply the shearing transformation to each point
+            for (vtkIdType i = 0; i < points->GetNumberOfPoints(); ++i) {
+                double point[3];
+                points->GetPoint(i, point);
+                double Px = point[0];
+                double Py = point[1];
 
-            // Apply the shearing equation
-            double Qx = Px + h * Py;
-            double Qy = Py;
+                // Apply the shearing equation
+                double Qx = Px + h * Py;
+                double Qy = Py;
 
-            // Set the new coordinates for the transformed point
-            points->SetPoint(i, Qx, Qy, point[2]);
+                // Set the new coordinates for the transformed point
+                points->SetPoint(i, Qx, Qy, point[2]);
+            }
+        }
+        else {
+            // Apply the shearing transformation to each point
+            for (vtkIdType i = 0; i < points->GetNumberOfPoints(); ++i) {
+                double point[3];
+                points->GetPoint(i, point);
+                double Px = point[0];
+                double Py = point[1];
+
+                // Apply the shearing equation
+                double Qx = Px;
+                double Qy = Py + h * Px;
+
+                // Set the new coordinates for the transformed point
+                points->SetPoint(i, Qx, Qy, point[2]);
+            }
         }
         // Update the source to reflect the transformed points
         temp_source->SetPoints(points);
@@ -2634,46 +2653,53 @@ namespace {
             }
         }
         else if (transform_state == "Shearing") {
+            QMessageBox messageBox;
+            messageBox.setText("Choose which shape you want to color");
+            messageBox.addButton(QMessageBox::tr("x-axis"), QMessageBox::YesRole);
+            messageBox.addButton(QMessageBox::tr("y-axis"), QMessageBox::YesRole);
+            messageBox.exec();
+            QString shearing_direc = messageBox.clickedButton()->text();
+            shearing_direc_mode = shearing_direc.toStdString();
             bool ok;
             double h = QInputDialog::getDouble(nullptr, "Enter the shearing factor", "Enter the factor of Shearing:", 0.0, -100.0, 360, 2, &ok);
             if (!ok) {
                 return;
             }  // Specify the desired shearing factor
             if (shape_name == "Circle") {
-                Shearing(circle_Source, h);
+                Shearing(circle_Source, h, shearing_direc_mode);
             }
             else if (shape_name == "Line") {
-                Shearing(lineSource, h);
+                Shearing(lineSource, h, shearing_direc_mode);
             }
             else if (shape_name == "Ellipse") {
-                Shearing(Ellipse_Source, h);
+                Shearing(Ellipse_Source, h, shearing_direc_mode);
             }
             else if (shape_name == "Arc") {
-                Shearing(Arc_Source, h);
+                Shearing(Arc_Source, h, shearing_direc_mode);
             }
             else if (shape_name == "Sphere") {
-                Shearing(Football_Source, h);
+                Shearing(Football_Source, h, shearing_direc_mode);
             }
             else if (shape_name == "Hexahedron") {
-                Shearing(Hexahedron_Source, h);
+                Shearing(Hexahedron_Source, h, shearing_direc_mode);
             }
             else if (shape_name == "Regular Polygon") {
-                Shearing(Regular_Polygon_Source, h);
+                Shearing(Regular_Polygon_Source, h, shearing_direc_mode);
             }
             else if (shape_name == "Cylinder") {
-                Shearing(Cylinder_Source, h);
+                Shearing(Cylinder_Source, h, shearing_direc_mode);
             }
             else if (shape_name == "Square") {
-                Shearing(Square_Source, h);
+                Shearing(Square_Source, h, shearing_direc_mode);
             }
             else if (shape_name == "Star") {
-                Shearing(Star_Source, h);
+                Shearing(Star_Source, h, shearing_direc_mode);
             }
             else if (shape_name == "Polyline") {
-                Shearing(PolyLine_Source, h);
+                Shearing(PolyLine_Source, h, shearing_direc_mode);
             }
             else if (shape_name == "Polygon") {
-                Shearing(Polygon_Source, h);
+                Shearing(Polygon_Source, h, shearing_direc_mode);
             }
             else {
                 return;
@@ -2807,42 +2833,42 @@ namespace {
         }
     }
 
-    void Shearing_all_shapes(vtkSmartPointer<vtkActor> tempactor, double h) {
+    void Shearing_all_shapes(vtkSmartPointer<vtkActor> tempactor, double h, string shearing_direc) {
         if (tempactor == actor) {
-            Shearing(lineSource, h);
+            Shearing(lineSource, h, shearing_direc);
         }
         else if (tempactor == actor_circle) {
-            Shearing(circle_Source, h);
+            Shearing(circle_Source, h, shearing_direc);
         }
         else if (tempactor == actor_Arc) {
-            Shearing(Arc_Source, h);
+            Shearing(Arc_Source, h, shearing_direc);
         }
         else if (tempactor == actor_Cylinder) {
-            Shearing(Cylinder_Source, h);
+            Shearing(Cylinder_Source, h, shearing_direc);
         }
         else if (tempactor == actor_Ellipse) {
-            Shearing(Ellipse_Source, h);
+            Shearing(Ellipse_Source, h, shearing_direc);
         }
         else if (tempactor == actor_Football) {
-            Shearing(Football_Source, h);
+            Shearing(Football_Source, h, shearing_direc);
         }
         else if (tempactor == actor_Hexahedron) {
-            Shearing(Hexahedron_Source, h);
+            Shearing(Hexahedron_Source, h, shearing_direc);
         }
         else if (tempactor == actor_Regular_Polygon) {
-            Shearing(Regular_Polygon_Source, h);
+            Shearing(Regular_Polygon_Source, h, shearing_direc);
         }
         else if (tempactor == actor_Square) {
-            Shearing(Square_Source, h);
+            Shearing(Square_Source, h, shearing_direc);
         }
         else if (tempactor == actor_Star) {
-            Shearing(Star_Source, h);
+            Shearing(Star_Source, h, shearing_direc);
         }
         else if (tempactor == Polygon_actor) {
-            Shearing(Polygon_Source, h);
+            Shearing(Polygon_Source, h, shearing_direc);
         }
         else if (tempactor == PolyLine_actor) {
-            Shearing(PolyLine_Source, h);
+            Shearing(PolyLine_Source, h, shearing_direc);
         }
         else {
             return;
@@ -2928,6 +2954,13 @@ namespace {
                 }
                 else if (transform_state == "Shearing") {
                     bool ok;
+                    QMessageBox messageBox;
+                    messageBox.setText("Choose which shape you want to color");
+                    messageBox.addButton(QMessageBox::tr("x-axis"), QMessageBox::YesRole);
+                    messageBox.addButton(QMessageBox::tr("y-axis"), QMessageBox::YesRole);
+                    messageBox.exec();
+                    QString shearing_direc = messageBox.clickedButton()->text();
+                    shearing_direc_mode = shearing_direc.toStdString();
                     double h = QInputDialog::getDouble(nullptr, "Enter the shearing factor", "Enter the factor of Shearing:", 0.0, -100.0, 360, 2, &ok);
                     if (!ok) {
                         return;
@@ -2936,7 +2969,7 @@ namespace {
                     actors->InitTraversal(); // Initialize the actors traversal
                     vtkActor* actor_all = nullptr;
                     while ((actor_all = actors->GetNextActor()) != nullptr) {
-                        Shearing_all_shapes(actor_all, h);
+                        Shearing_all_shapes(actor_all, h, shearing_direc_mode);
                     }
                 }
             }
