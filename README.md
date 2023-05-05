@@ -2,6 +2,12 @@
 
 This project is a combination of VTK, OpenGL, Qt, and CMake for creating 2D and 3D shapes and applying various transformations on them.
 
+## Table of Contents
+
+- [Features](#Features)
+- [Installation](#Installation)
+- [Usage](#Usage)
+
 ## Features
 
 - Drawing various shapes in 2D and 3D
