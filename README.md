@@ -16,6 +16,8 @@ This project is a combination of VTK, OpenGL, Qt, and CMake for creating 2D and 
 - Applying transformations such as translation, rotation, and shearing
 - Editing specific shapes, all shapes, or the last shape drawn
 - Displaying all the shapes in the renderer window on the right sidebar
+- Undo and redo options for the shapes
+- Flexibility to draw shapes using either mouse click or by entering points as an input
 
 ## Installation
 
@@ -36,4 +38,5 @@ This project is a combination of VTK, OpenGL, Qt, and CMake for creating 2D and 
 5. Edit the shape by selecting the edit option in the sidebar and clicking on the shape in the renderer window
 6. Save the shapes to a txt or csv file by selecting the save option in the sidebar
 7. Load shapes from a txt or csv file by selecting the load option in the sidebar
+8. Undo and redo the previous actions by selecting the corresponding options in the sidebar
 
