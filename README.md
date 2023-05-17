@@ -21,6 +21,7 @@ This project is a combination of VTK, OpenGL, Qt, and CMake for creating 2D and 
 - Flexibility to draw shapes using either mouse click or by entering points as an input
 
 ## Preview
+![main widow](./Preview/Review.gif)
 
 ## Installation
 
