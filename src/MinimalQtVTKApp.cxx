@@ -700,6 +700,10 @@ namespace {
 
     void Draw_Ellipse(double x_axis, double y_axis, string color, int thickness, double center_x, double center_y) {
         // Create an ellipse using parametric equations
+        // The function generates points along the ellipse's perimeter based on the provided x-axis, y-axis, and center coordinates.
+        // The ellipse is approximated by a series of points calculated using the parametric equations of an ellipse.
+        // The number of points determines the smoothness of the ellipse shape.
+        // The resulting points are used to create an actor that represents the ellipse in the scene.
         double A = x_axis; // Major axis length
         double B = y_axis; // Minor axis length
         int numPoints = 50; // Number of points to approximate the ellipse
@@ -725,6 +729,10 @@ namespace {
     }
 
     void Draw_Regular_Polygon(double radius, int no_points, string color, int thickness) {
+       // Generates a regular polygon shape with the specified radius and number of points.
+       // The shape is created using a parametric equation and inserted as points in a vtkPoints object.
+       // The points are then used to generate a line source, which is mapped to an actor and added to the renderer.
+   
         // Define parameters for the regular polygon
         double angleIncrement = 2 * vtkMath::Pi() / no_points; // Angle increment between consecutive points
 
@@ -754,9 +762,16 @@ namespace {
     }
 
     void Draw_Arc(double radius, string color, int thickness, double center_x, double center_y, double start_angle, double end_angle) {
-        // Define parameters for the arc
-        //double startAngle = 1.0; // Start angle of the arc in radians
-        //double endAngle = vtkMath::Pi(); // End angle of the arc in radians
+        // Generates an arc shape with the specified parameters and approximates it using a series of points.
+
+        // Parameters:
+        // - radius: The radius of the arc.
+        // - color: The color of the arc.
+        // - thickness: The thickness of the arc.
+        // - center_x: The x-coordinate of the center of the arc.
+        // - center_y: The y-coordinate of the center of the arc.
+        // - start_angle: The starting angle of the arc in radians.
+        // - end_angle: The ending angle of the arc in radians.
         int numPoints = 100; // Number of points to approximate the arc
 
         vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
@@ -787,6 +802,15 @@ namespace {
     }
 
     void Draw_Cylinder(double radius, double height, string color, int thickness) {
+        /**
+         * Draw_Cylinder function generates and visualizes a cylinder with given radius, height, color, and thickness.
+         * The cylinder is approximated using a set of points on its surface.
+         *
+         * @param radius The radius of the cylinder.
+         * @param height The height of the cylinder.
+         * @param color The color of the cylinder.
+         * @param thickness The thickness of the cylinder.
+         */
         // Define parameters for the cylinder
         double R = radius; // Radius of the cylinder
         double H = height; // Height of the cylinder
@@ -821,6 +845,16 @@ namespace {
     }
 
     void Draw_Sphere(double radius, string color, int thickness, double center_x, double center_y, double center_z) {
+        /**
+         * Generate a sphere shape and render it using VTK.
+         *
+         * Parameters:
+         * - radius: Radius of the sphere.
+         * - color: Color of the sphere.
+         * - thickness: Thickness of the sphere's surface.
+         * - center_x, center_y, center_z: Coordinates of the sphere's center.
+         */
+
         // Define parameters for the sphere
         double R = radius; // Radius of the sphere
         int numPointsTheta = 100; // Number of points in theta direction
@@ -860,6 +894,14 @@ namespace {
 
     void Draw_Square(double radius_square, string color, int thickness)
     {
+        /**
+        * Draws a square with a specified radius, color, and thickness.
+        * The square is centered at the origin (0, 0, 0) and lies on the XY plane.
+        *
+        * @param radius_square The radius of the square.
+        * @param color The color of the square.
+        * @param thickness The thickness of the square lines.
+        */
         // Define the center point of the hexahedron
         double center[3] = { 0.0, 0.0, 0.0 };
 
@@ -896,6 +938,25 @@ namespace {
 
     void Draw_Hexahedron(double radius_hex, string color, int thickness)
     {
+        /**
+         * Draw_Hexahedron function creates a hexahedron shape in 3D space and adds it to the renderer.
+         *
+         * Parameters:
+         * - radius_hex: The radius from the center to each vertex of the hexahedron.
+         * - color: The color of the hexahedron.
+         * - thickness: The thickness of the lines used to render the hexahedron.
+         *
+         * Description:
+         * 1. Define the center point of the hexahedron.
+         * 2. Calculate the coordinates of the vertices of the upper and lower parts of the hexahedron.
+         * 3. Create a vtkPoints object to store the vertices.
+         * 4. Insert the vertices of the upper and lower parts into the vtkPoints object.
+         * 5. Set the points as the input data for the vtkLineSource.
+         * 6. Update the mapper with the vtkLineSource output.
+         * 7. Set the color and thickness of the hexahedron actor.
+         * 8. Add the actor to the renderer.
+         */
+
         // Define the center point of the hexahedron
         double center[3] = { 0.0, 0.0, 0.0 };
 
@@ -956,6 +1017,16 @@ namespace {
     }
 
     void Draw_Star(double radius, string color, int thickness) {
+        /**
+         * Generate a star shape with a given radius, color, and thickness.
+         * The star shape is approximated by connecting outer and inner points.
+         * The level of detail can be adjusted by changing the number of points.
+         *
+         * @param radius    The radius of the star.
+         * @param color     The color of the star.
+         * @param thickness The thickness of the star's lines.
+         */
+
         // Number of points to approximate the star
         int numPoints = 5; // You can adjust this value to change the level of detail of the star
 
@@ -988,6 +1059,19 @@ namespace {
     }
 
     void Draw_Line(double x1_line, double y1_line, double x2_line, double y2_line, string color, int thickness) {
+        /**
+         * Draw_Line generates a straight line segment between two specified points.
+         * The line is approximated by dividing it into a specified number of points
+         * using parametric equations. The resulting line segment is rendered with
+         * the specified color and thickness.
+         *
+         * @param x1_line The x-coordinate of the starting point of the line segment.
+         * @param y1_line The y-coordinate of the starting point of the line segment.
+         * @param x2_line The x-coordinate of the ending point of the line segment.
+         * @param y2_line The y-coordinate of the ending point of the line segment.
+         * @param color The color of the line segment in string format (e.g., "Red").
+         * @param thickness The thickness of the line segment.
+         */
         vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
 
         int numPoints = 2; // Number of points to approximate the line
@@ -1012,7 +1096,11 @@ namespace {
     }
 
     void DrawLine(vtkSmartPointer<vtkPoints> points) {
-
+        /**
+         * Draws a line connecting two points using the given vtkPoints object.
+         * The line is created using linear interpolation between the two points.
+         * The line is added to the scene as an actor with a specified color and line width.
+         */
         // Point 1
         double* point1 = points->GetPoint(points->GetNumberOfPoints() - 2);
         x1_line = floor(point1[0] * 100) / 100;
@@ -1046,6 +1134,19 @@ namespace {
 
     void Draw_Ellipsoid(double a, double b, double c, string color, int thickness)
     {
+        /**
+         * Generate points on the surface of an ellipsoid with given dimensions a, b, and c.
+         * The ellipsoid is approximated by connecting the generated points to form lines.
+         * The generated ellipsoid is then displayed using a mapper and actor.
+         *
+         * Parameters:
+         * - a: Length of the semi-major axis
+         * - b: Length of the semi-minor axis
+         * - c: Length of the semi-intermediate axis
+         * - color: Color of the ellipsoid
+         * - thickness: Thickness of the lines representing the ellipsoid
+         */
+
         // Generate the points on the surface of the ellipsoid
         vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
 
@@ -1098,11 +1199,22 @@ namespace {
     }
 
     void DrawPolyLine(vtkSmartPointer<vtkPoints> points) {
+        /**
+        * Draws a polyline with the given points.
+        * The polyline is created using the provided points and displayed with red color and a line width of 3.0.
+        *
+        * @param points The points defining the polyline.
+        */
+
+        // Set the points as the input points for the polyline source
         PolyLine_Source->SetPoints(points);
+        // Update the mapper with the polyline source output
         PolyLine_mapper->SetInputConnection(PolyLine_Source->GetOutputPort());
         PolyLine_mapper->Update();
+        // Set the mapper and properties for the polyline actor
         PolyLine_actor->SetMapper(PolyLine_mapper);
         PolyLine_actor->GetProperty()->SetColor(1.0, 0.0, 0.0);
+        // Add the polyline actor to the renderer
         PolyLine_actor->GetProperty()->SetLineWidth(3.0);
 
         // Add the actor to the scene
@@ -1111,6 +1223,14 @@ namespace {
     }
 
     void DeleteLine_Poly(vtkSmartPointer<vtkPoints> points) {
+        /**
+         * DeleteLine_Poly function updates the line source to create a deletion line for a polygon.
+         * It sets the start and end points of the deletion line based on the provided points.
+         * The line is then rendered using a mapper and actor, with the color set to match the background
+         * and a specific line width.
+         *
+         * @param points The points representing the polygon from which the deletion line is created.
+         */
         DellineSource->SetPoint1(points->GetPoint(points->GetNumberOfPoints() - 2));
         DellineSource->SetPoint2(points->GetPoint(points->GetNumberOfPoints() - 1));
 
@@ -1127,20 +1247,42 @@ namespace {
     }
 
     void DrawPolygon(vtkSmartPointer<vtkPoints> points) {
+        /**
+         * Draws a polygon using the provided points.
+         * The points are inserted into the vtkPoints object and used to define the polygon shape.
+         * The polygon is rendered with a red color and a line width of 3.0.
+         * The polygon is added to the scene for display.
+         *
+         * @param points The points defining the polygon shape.
+         */
+
+         // Insert the first point at the end to create a closed polygon
         points->InsertNextPoint(points->GetPoint(0));
+        // Set the points as the input points for the polygon source
         Polygon_Source->SetPoints(points);
+        // Update the mapper with the polygon source output
         Polygon_mapper->SetInputConnection(Polygon_Source->GetOutputPort());
         Polygon_mapper->Update();
+        // Set the mapper and properties for the polygon actor
         Polygon_actor->SetMapper(Polygon_mapper);
         Polygon_actor->GetProperty()->SetColor(1.0, 0.0, 0.0);
         Polygon_actor->GetProperty()->SetLineWidth(3.0);
 
-        // Add the actor to the scene
-        //renderer->RemoveAllViewProps();
+        // Add the polygon actor to the renderer's scene
         renderer->AddActor(Polygon_actor);
     }
 
     string specify_color(double* color) {
+        /**
+         * Returns the name of a color based on its RGB value.
+         *
+         * The function takes a pointer to an array of three values representing the RGB color components.
+         * It compares the RGB values with predefined color values to determine the closest matching color name.
+         * If a match is found, the corresponding color name is returned. Otherwise, "Unknown" is returned.
+         *
+         * @param color - Pointer to an array of three values representing the RGB color components.
+         * @return The name of the color based on its RGB value.
+         */
         // Get the name of the color based on its RGB value
         if (color[0] == 1.0 && color[1] == 0.0 && color[2] == 0.0) {
             return "Red";
@@ -1169,6 +1311,25 @@ namespace {
     }
 
     void Save() {
+        /**
+
+        This function saves the drawn shapes to a file. It prompts the user to choose between saving as TXT or CSV format.
+
+        If the user chooses TXT, it opens a file dialog for the user to choose the TXT file to save.
+
+        If the user chooses CSV, it opens a file dialog for the user to choose the CSV file to save.
+
+        The function then iterates over the drawn shapes and writes the shape properties to the output file in a tab-separated format.
+
+        The properties include shape name, coordinates, dimensions, color, thickness, deletion status, and whether it is 2D or 3D.
+
+        The properties of each shape are extracted from the corresponding actors associated with the shape.
+
+        The shape properties are written to the output file in a specific format for each shape type.
+
+        Finally, the function closes the output file.
+        */
+
         // Access the first element in the set and convert it to a std::string
         std::string shape_name = drawnShapes_all.begin()->toStdString();
 
@@ -1607,6 +1768,14 @@ namespace {
     }
 
     void Change_Color(string color_name, vtkSmartPointer<vtkActor> temp_actor) {
+        /**
+         * Changes the color of the given vtkActor based on the provided color name.
+         *
+         * @param color_name The name of the color to be applied.
+         *                   Supported color names: "Red", "Green", "Blue", "Yellow", "Magenta", "Black", "White".
+         *                   If an unsupported color name is provided, no change will be applied.
+         * @param temp_actor The vtkActor object whose color will be changed.
+         */
         if (color_name == "Red")
         {
             temp_actor->GetProperty()->SetColor(1.0, 0.0, 0.0);
@@ -1638,6 +1807,13 @@ namespace {
     }
 
     void ChangeColor_Button(QComboBox* comboBox_Color, vtkGenericOpenGLRenderWindow* window, QComboBox* comboBox_Shapes) {
+        /**
+         * Change the color of the selected shape based on the chosen color.
+         *
+         * @param comboBox_Color The QComboBox object that contains the color options.
+         * @param window The vtkGenericOpenGLRenderWindow object to render the scene.
+         * @param comboBox_Shapes The QComboBox object that contains the shape options.
+         */
         QString color_name = comboBox_Color->currentText();
         QString shape_name = comboBox_Shapes->currentText();
         std::string color_name_std = color_name.toStdString(); // Convert QString to std::string
@@ -1817,6 +1993,19 @@ namespace {
     }
 
     void drawnshapes_and_all_count(string shape_name) {
+        /**
+         * @brief Updates the counts and records the drawn shapes.
+         *
+         * This function is responsible for updating the counts and keeping track of the drawn shapes.
+         * It takes the name of the shape as input and performs the following operations:
+         *
+         * 1. Converts the shape_name from a string to a QString.
+         * 2. Inserts the shape_name into the set of drawnShapes.
+         * 3. Inserts the shape_name into the set of drawnShapes_all.
+         * 4. Increments the count_shapes variable.
+         *
+         * @param shape_name The name of the shape being drawn.
+         */
         // Convert shape_name from string to QString
         QString qShapeName = QString::fromStdString(shape_name);
 
@@ -1827,6 +2016,20 @@ namespace {
 
     void Load(QComboBox* comboBox)
     {
+        /**
+
+        This function loads data from a file into a QComboBox object. The user is prompted to select a file through a file dialog. The function supports loading data from both text files (.txt) and comma-separated value (CSV) files (.csv).
+
+        If a valid file is selected, the function reads the contents of the file line by line and processes each line based on the shape specified. The shape information is extracted from the line, and the corresponding drawing function is called to create the shape and display it on the screen. The function also updates the count of drawn shapes and sets the current text of the QComboBox to match the loaded shape.
+
+        For text files, the function opens the file for reading and parses the lines using string manipulation and stream extraction. Each shape is processed based on its specific format, and the relevant parameters are extracted and passed to the corresponding drawing function. If a shape is marked as deleted, it is skipped.
+
+        For CSV files, the function opens the file for reading and uses a QTextStream to read the lines. Each line is split into fields using a comma as the delimiter. The shape information is extracted from the first field, and the remaining fields contain the shape's parameters. Similar to text files, the parameters are converted to the appropriate data types and passed to the drawing functions. If a shape is marked as deleted, it is skipped.
+
+        If the file type is unsupported or an error occurs during file opening or reading, an appropriate error message is displayed.
+
+        @param comboBox A pointer to the QComboBox object where the loaded shape will be displayed.
+        */
         QString filename = QFileDialog::getOpenFileName(nullptr, "Open File", "", "Text files (*.txt);;CSV files (*.csv)");
 
         if (!filename.isEmpty()) {
@@ -2141,11 +2344,35 @@ namespace {
     }
 
     void updatethickness_2(vtkSmartPointer<vtkActor> tempactor, int thickness) {
+
+        /**
+
+        This function updates the thickness of the given vtkActor object by setting the line width property of its vtkProperty object.
+        The vtkMapper object associated with the vtkActor is then updated to ensure that the changes are reflected in the rendered scene.
+        @param tempactor - A vtkActor object representing the shape whose thickness is to be updated.
+        @param thickness - An integer value specifying the desired thickness of the lines representing the shape.
+        */
         tempactor->GetProperty()->SetLineWidth(thickness);
         tempactor->GetMapper()->Update();
     }
 
     void UpdateThickness(int thickness, vtkGenericOpenGLRenderWindow* window, QComboBox* comboBox) {
+
+        /**
+
+        This function updates the thickness of the selected shape(s) in a 3D rendering window. The thickness is specified by the 'thickness' parameter.
+
+        The function provides different options to update the thickness based on the selected mode:
+
+        "Last shape drawn": Updates the thickness of the last shape that was drawn.
+        "All the Shapes": Updates the thickness of all the shapes in the rendering window.
+        "Specific shape": Prompts the user to select a specific shape from a dropdown menu and updates its thickness.
+        @param thickness - an integer representing the desired thickness value
+
+        @param window - a vtkGenericOpenGLRenderWindow object representing the rendering window
+
+        @param comboBox - a QComboBox object representing the dropdown menu for shape selection
+        */
         QString shape_name = comboBox->currentText();
         if (count_shapes > 1) {
             QMessageBox messageBox;
@@ -2329,6 +2556,15 @@ namespace {
     }
 
     void add_shape_list(string shape_name, QListWidget& shapeListWidget) {
+        /**
+
+        This function adds a shape name to the given QListWidget object, representing a list of shapes.
+        The shape name is converted from a C++ std::string to a QString to ensure compatibility with the Qt framework.
+        A new QListWidgetItem is created with the shape name and added to the shapeListWidget.
+        The item's flags are set to allow user checking, enabling interaction with the shape list.
+        @param shape_name - the name of the shape to be added to the list
+        @param shapeListWidget - the QListWidget object representing the list of shapes
+        */
         QString qshape_name = QString::fromStdString(shape_name);
         QListWidgetItem* item = new QListWidgetItem(qshape_name, &shapeListWidget);
         item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
@@ -2336,6 +2572,24 @@ namespace {
 
     void Change_Shapes(QComboBox* comboBox, vtkGenericOpenGLRenderWindow* window, QListWidget& shapeListWidget)
     {
+        /**
+
+        This function is called when the user selects a shape from a combo box. It handles the logic for different shapes,
+
+        including circle, sphere, arc, hexahedron, and line. It prompts the user to choose a drawing style, either using
+
+        mouse clicks or entering points manually. Based on the chosen style, it sets the corresponding variables and
+
+        configurations. It also sets up the custom interactor style for the render window interactor. Finally, it updates
+
+        the shape count and adds the shape to the shape list widget.
+
+        @param comboBox - a QComboBox object representing the combo box containing the available shapes
+
+        @param window - a vtkGenericOpenGLRenderWindow object representing the render window
+
+        @param shapeListWidget - a QListWidget object representing the shape list widget
+        */
         std::string shape_name = comboBox->currentText().toStdString();
         drawn_shapes.push(shape_name); // Add the shape name to the stack
         vtkNew<MouseInteractorStyleDrawLine> style;
@@ -2656,6 +2910,18 @@ namespace {
     }
 
     void delete_shape(vtkSmartPointer<vtkLineSource> temp_Source, vtkSmartPointer<vtkActor> temp_actor) {
+        /**
+
+        This function deletes a shape represented by a vtkLineSource and its corresponding vtkActor object.
+        It performs the following operations:
+        Sets the color of the shape to match the background color.
+        Removes the points from the vtkLineSource, effectively deleting the shape.
+        Decrements the count of shapes in the scene.
+        Adds the deleted shape (both the vtkLineSource and vtkActor) to the respective stacks for possible restoration.
+        @param temp_Source - a vtkLineSource object representing the shape to be deleted
+        @param temp_actor - a vtkActor object representing the actor associated with the shape
+        */
+
         // Set the color of the shape to match the background color
         temp_actor->GetProperty()->SetColor(renderer->GetBackground());
         // Remove points from the line source
@@ -2669,6 +2935,20 @@ namespace {
     }
 
     void erase_specific_shape(QString shape_name) {
+        /**
+
+        This function is responsible for erasing a specific shape from the drawing canvas.
+        The function takes a shape name as input and performs the following steps:
+        If the shape name matches "Circle", "Line", "Ellipse", "Arc", "Sphere", "Hexahedron", "Regular Polygon",
+        "Cylinder", "Square", "Star", "Polyline", "Polygon", or "Ellipsoid":
+        Retrieve the color of the shape's actor using the GetColor() function.
+        Convert the color to a specified format using the specify_color() function.
+        Delete the shape by calling the delete_shape() function with the corresponding source and actor objects.
+        Remove the shape from the drawnShapes collection.
+        Set the corresponding shape_deleted flag to true.
+        If the shape name does not match any of the above shapes, the function returns without performing any action.
+        @param shape_name - a QString specifying the name of the shape to be erased
+        */
         if (shape_name == "Circle") {
             double* color = actor_circle->GetProperty()->GetColor();
             Color_Circle = specify_color(color);
@@ -2770,6 +3050,12 @@ namespace {
     }
 
     void delete_all_shapes() {
+        /**
+
+        This function deletes all the shapes that have been drawn in the renderer. It removes all the actors representing the shapes from the renderer and clears the set of drawn shape names.
+        Additionally, it resets the flags indicating the presence of specific 3D shapes (cube, cylinder, ellipsoid, sphere) and the deletion status of various 2D shapes (circle, ellipse, regular polygon, arc, cylinder, sphere, square, hexahedron, star, line, polyline, polygon, ellipsoid).
+        This function ensures a clean slate by removing all visual representations of shapes and resetting related status flags, allowing for a fresh start in the drawing process.
+        */
         vtkActorCollection* actors = renderer->GetActors(); // Get the collection of actors in the renderer
         actors->InitTraversal(); // Initialize the actors traversal
 
@@ -2800,6 +3086,21 @@ namespace {
     }
 
     void Delete(QComboBox* comboBox, vtkGenericOpenGLRenderWindow* window) {
+        /**
+
+        This function handles the deletion of shapes in the application. It takes a QComboBox object representing the shape selection dropdown and a vtkGenericOpenGLRenderWindow object representing the rendering window.
+        The function first retrieves the name of the selected shape from the QComboBox. It then creates a new MouseInteractorStyleDrawLine object and sets its draw flag to false, indicating that drawing mode is disabled.
+        The vtkRenderWindowInteractor is created and associated with the rendering window. The MouseInteractorStyleDrawLine is set as the interactor style for the render window interactor, and the renderer is set.
+        If there is only one shape present, the function deletes all shapes and resets the shape count.
+        If there are multiple shapes, a QMessageBox is displayed to prompt the user to choose the deletion mode: last shape drawn, all shapes, or a specific shape.
+        If the deletion mode is "Last shape drawn", the specific shape indicated by the shape name is erased.
+        If the deletion mode is "All the Shapes", all shapes are deleted and the count is reset.
+        If the deletion mode is "Specific shape", a QMessageBox is displayed with a QComboBox listing all the drawn shape names.
+        The user can select a specific shape from the QComboBox, and that shape is erased.
+        Finally, the rendering window is rendered to reflect the changes.
+        @param comboBox - a QComboBox object representing the shape selection dropdown
+        @param window - a vtkGenericOpenGLRenderWindow object representing the rendering window
+        */
         QString shape_name = comboBox->currentText();
         vtkNew<MouseInteractorStyleDrawLine> style;
         //style->setShapeName(shape_name);
@@ -2848,6 +3149,19 @@ namespace {
     }
 
     void Translation(vtkSmartPointer<vtkLineSource> temp_source, vtkDataSetMapper* temp_mapper, double m14, double m24, double m34) {
+
+        /**
+
+        This function performs translation on the given vtkLineSource object and its associated vtkMapper by applying the specified translation values.
+        The translation is performed by adding the translation values to the coordinates of each point in the vtkLineSource's vtkPoints object.
+        The translated points are then set as the new points for the vtkLineSource.
+        Finally, the vtkMapper is updated to reflect the changes.
+        @param temp_source - a vtkLineSource object representing the shape to be translated
+        @param temp_mapper - a pointer to the vtkDataSetMapper associated with the vtkLineSource
+        @param m14 - translation value for the x-coordinate
+        @param m24 - translation value for the y-coordinate
+        @param m34 - translation value for the z-coordinate
+        */
         // Get the points of the circle shape
         vtkPoints* points = temp_source->GetPoints();
 
@@ -2870,6 +3184,16 @@ namespace {
     }
 
     void Scaling(vtkSmartPointer<vtkLineSource> temp_source, double scalingFactorX, double scalingFactorY, double scalingFactorZ) {
+        /**
+
+        This function performs scaling on the points of a given vtkLineSource object. The scaling is applied individually
+        to the x, y, and z coordinates of each point. The scaling factors for each coordinate are provided as arguments.
+        @param temp_source - a vtkLineSource object representing the shape to be scaled
+        @param scalingFactorX - the scaling factor for the x coordinate
+        @param scalingFactorY - the scaling factor for the y coordinate
+        @param scalingFactorZ - the scaling factor for the z coordinate
+        */
+
         // Get the points of the circle
         vtkSmartPointer<vtkPoints> points = temp_source->GetPoints();
         for (int i = 0; i < points->GetNumberOfPoints(); i++) {
@@ -2885,6 +3209,27 @@ namespace {
     }
 
     void Rotation_3D(vtkSmartPointer<vtkLineSource> temp_source, vtkDataSetMapper* temp_mapper, double angle, string rotation_axis) {
+        /**
+            This function performs a 3D rotation on the points of a vtkLineSource object.
+
+            The rotation is applied based on the specified rotation axis (x-axis, y-axis, or z-axis) and the given angle in degrees.
+
+            The points are retrieved from the vtkLineSource object, and a new vtkPoints object is created to store the rotated points.
+
+            Each point is then rotated according to the specified rotation axis and angle.
+
+            The rotated points are inserted into the new vtkPoints object.
+
+            Finally, the translated points are set back to the vtkLineSource object, and the associated vtkMapper is updated to reflect the changes.
+
+            @param temp_source - a vtkLineSource object representing the shape to be rotated
+
+            @param temp_mapper - a vtkDataSetMapper object associated with the vtkLineSource object
+
+            @param angle - the rotation angle in degrees
+
+            @param rotation_axis - the rotation axis ("x-axis", "y-axis", or "z-axis") around which the rotation is applied
+            */
         // Convert the angle to radians
         angle *= vtkMath::Pi() / 180.0;
 
@@ -2934,6 +3279,17 @@ namespace {
     }
 
     void Rotation_2D(vtkSmartPointer<vtkLineSource> temp_source, vtkDataSetMapper* temp_mapper, double angle) {
+        /**
+
+        This function performs a 2D rotation transformation on the given vtkLineSource object and updates its associated vtkMapper.
+        The rotation angle is specified in degrees and is converted to radians before applying the transformation.
+        The function retrieves the points from the vtkLineSource, applies the rotation transformation to each point,
+        and stores the translated points in a new vtkPoints object.
+        Finally, the translated points are set as the new points for the vtkLineSource, and the vtkMapper is updated to reflect the changes.
+        @param temp_source - a vtkLineSource object representing the shape to be rotated
+        @param temp_mapper - a pointer to the vtkDataSetMapper object associated with the vtkLineSource
+        @param angle - the rotation angle in degrees
+        */
         angle *= vtkMath::Pi() / 180.0; // Convert the angle to radians
         vtkPoints* points = temp_source->GetPoints();
 
@@ -2958,6 +3314,24 @@ namespace {
     }
 
     void Shearing_2D(vtkLineSource* temp_source, double h, string Shearing_2D_direc) {
+        /**
+            This function applies a 2D shearing transformation to the points in a vtkLineSource object based on the specified shearing direction.
+
+            The shearing transformation is performed by modifying the coordinates of each point in the source according to the shearing equations.
+
+            If the shearing direction is along the x-axis, the y-coordinate of each point is shifted by a factor of h times the x-coordinate.
+
+            If the shearing direction is along the y-axis, the x-coordinate of each point is shifted by a factor of h times the y-coordinate.
+
+            After the transformation, the source is updated with the new coordinates, and the modified flag is set to indicate the changes.
+
+            @param temp_source - a vtkLineSource object representing the shape to be sheared
+
+            @param h - the shearing factor
+
+            @param Shearing_2D_direc - the direction of shearing, either "x-axis" or "y-axis"
+            */
+
         // Get the current coordinates of the points in the source
         vtkSmartPointer<vtkPoints> points = temp_source->GetPoints();
 
@@ -3002,6 +3376,22 @@ namespace {
     }
 
     void Shearing_3D(vtkLineSource* temp_source, double h, string Shearing_3D_direc) {
+
+        /**
+
+        This function applies a 3D shearing transformation to a given vtkLineSource object based on the specified shearing direction.
+
+        The function iterates through each point in the source and applies the shearing equations to transform the coordinates.
+
+        The shearing direction is specified as "x-axis", "y-axis", or "z-axis".
+
+        @param temp_source - a vtkLineSource object representing the shape to be sheared
+
+        @param h - the shearing factor
+
+        @param Shearing_3D_direc - the direction of shearing ("x-axis", "y-axis", or "z-axis")
+        */
+
         // Get the current coordinates of the points in the source
         vtkSmartPointer<vtkPoints> points = temp_source->GetPoints();
 
@@ -3070,6 +3460,16 @@ namespace {
     }
 
     void transform_modes(QString transform_state, QString shape_name) {
+        /**
+
+        This function performs various transformations on shapes based on the provided transformation state and shape name.
+
+        The transformations include translation, scaling, rotation, and shearing.
+
+        @param transform_state - a QString representing the transformation state (e.g., "Translation", "Scaling", "Rotating", "Shearing")
+
+        @param shape_name - a QString representing the name of the shape to be transformed
+        */
         if (transform_state == "Translation") {
             bool ok;
             double x = QInputDialog::getDouble(nullptr, "Enter Translation X", "Enter the Translation X:", 0.0, -100.0, 100.0, 2, &ok);
@@ -3512,6 +3912,23 @@ namespace {
     }
 
     void Transform(QComboBox* comboBox_Transform, vtkGenericOpenGLRenderWindow* window, QComboBox* comboBox_Shapes) {
+        /**
+
+        This function applies transformations to shapes based on the selected transformation and shape in a graphical user interface (GUI) context.
+        It takes input from combo boxes representing the transformation type and the shape to be transformed.
+        The function handles different cases based on the number of shapes present in the scene.
+        If there is only one shape, the transformation is applied directly to that shape.
+        If there are multiple shapes, the user is prompted to choose which shape or shapes should undergo the transformation.
+        The supported transformations include translation, scaling, rotation, and shearing.
+        Translation allows the user to specify the displacement in the X, Y, and Z directions.
+        Scaling enables the user to set scaling factors in the X, Y, and Z directions.
+        Rotation allows the user to define the angle of rotation and the axis of rotation (x-axis, y-axis, or z-axis).
+        Shearing permits the user to select the axis of shearing and specify the shearing factor.
+        After applying the transformation to the chosen shapes, the rendered window is updated to reflect the changes.
+        @param comboBox_Transform - a QComboBox object representing the combo box for selecting the transformation type
+        @param window - a vtkGenericOpenGLRenderWindow object representing the rendering window
+        @param comboBox_Shapes - a QComboBox object representing the combo box for selecting the shape to be transformed
+        */
         QString transform_state = comboBox_Transform->currentText();
         QString shape_name = comboBox_Shapes->currentText();
         if (count_shapes > 1) {
@@ -3666,6 +4083,15 @@ namespace {
     }
 
     void Undo(QComboBox* comboBox, vtkGenericOpenGLRenderWindow* window) {
+        /**
+
+        This function performs the "Undo" operation by reverting the most recent drawing action.
+        It retrieves the name of the shape that was last drawn from the top of the stack.
+        The shape is then removed from the drawing using the erase_specific_shape function.
+        Finally, the vtkGenericOpenGLRenderWindow is rendered to update the display and reflect the changes.
+        @param comboBox - a QComboBox object representing the dropdown menu for selecting shapes
+        @param window - a vtkGenericOpenGLRenderWindow object representing the rendering window
+        */
         QString shape_name = QString::fromStdString(drawn_shapes.top());
         drawn_shapes.pop(); // Remove the top shape name from the stack
         erase_specific_shape(shape_name);
@@ -3673,6 +4099,19 @@ namespace {
     }
 
     void Redo(vtkGenericOpenGLRenderWindow* window) {
+        /**
+        This function performs the redo operation by restoring the most recently deleted shape in the scene.
+
+        It retrieves the top line source and actor from the deleted sources and actors stacks, respectively,
+
+        and adds them back to the renderer and window to make them visible again.
+
+        If there are more shapes to redo, the process is repeated for the next shape.
+
+        Finally, the window is rendered to update the display with the restored shapes.
+
+        @param window - a vtkGenericOpenGLRenderWindow object representing the rendering window
+        */
         if (deleted_sources.empty() || deleted_actors.empty()) {
             return;
         }
