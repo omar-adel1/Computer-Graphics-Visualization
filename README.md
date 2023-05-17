@@ -5,6 +5,7 @@ This project is a combination of VTK, OpenGL, Qt, and CMake for creating 2D and 
 ## Table of Contents
 
 - [Features](#Features)
+- [Preview](#Preview)
 - [Installation](#Installation)
 - [Usage](#Usage)
 
