@@ -8,6 +8,7 @@ This project is a combination of VTK, OpenGL, Qt, and CMake for creating 2D and 
 - [Preview](#Preview)
 - [Installation](#Installation)
 - [Usage](#Usage)
+- [Acknowledgements](#Acknowledgements)
 
 ## Features
 
@@ -43,4 +44,9 @@ This project is a combination of VTK, OpenGL, Qt, and CMake for creating 2D and 
 6. Save the shapes to a txt or csv file by selecting the save option in the sidebar
 7. Load shapes from a txt or csv file by selecting the load option in the sidebar
 8. Undo and redo the previous actions by selecting the corresponding options in the sidebar
+
+## Acknowledgements
+
+Submitted to: Dr. Ahmed Elbaily & Eng. Laila
+All rights reserved © 2023 to Team 8 - HealthCare Engineering and Management, Cairo University (Class 2025)
 
