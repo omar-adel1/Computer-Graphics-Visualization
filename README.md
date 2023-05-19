@@ -49,5 +49,5 @@ This project is a combination of VTK, OpenGL, Qt, and CMake for creating 2D and 
 
 Submitted to: Dr. Ahmed Elbaily & Eng. Laila
 
-All rights reserved © 2023 to Team 8 - HealthCare Engineering and Management, Cairo University (Class 2025)
+All rights reserved © 2023 to Team 10 - HealthCare Engineering and Management, Cairo University (Class 2025)
 
